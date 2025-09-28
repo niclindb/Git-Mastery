@@ -414,7 +414,7 @@ export default function Home() {
 
                                                     {/* Arrow to next stage */}
                                                     {isUnlocked && index < Object.keys(stages).length - 1 && (
-                                                        <div className="absolute -bottom-8 right-4 hidden text-purple-500 lg:block">
+                                                        <div className="absolute bottom-4 right-4 hidden text-purple-500 lg:block">
                                                             <ChevronRight className="animate-bounce h-6 w-6" />
                                                         </div>
                                                     )}
