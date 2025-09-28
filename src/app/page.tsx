@@ -22,12 +22,19 @@ import {
     Zap,
     ArrowRight,
     Github,
+    Settings,
+    ShoppingCart,
+    Gamepad2,
 } from "lucide-react";
 import { useGameContext } from "~/contexts/GameContext";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { ClientOnly } from "~/components/ClientOnly";
 import { useLanguage } from "~/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
+import { DifficultySelector } from "~/components/DifficultySelector";
+import { Shop } from "~/components/Shop";
+import { Minigames } from "~/components/Minigames";
+import { getAvailableStagesForDifficulty } from "~/config/difficulties";
 
 // Animation helper component
 const AnimatedElement = ({
@@ -79,10 +86,14 @@ const AnimatedElement = ({
 };
 
 export default function Home() {
-    const { levelManager, progressManager } = useGameContext();
+    const { levelManager, progressManager, currentDifficulty } = useGameContext();
     const { t } = useLanguage();
     const router = useRouter();
     const [progress, setProgress] = useState(progressManager.getProgress());
+    const [showDifficultySelector, setShowDifficultySelector] = useState(false);
+    const [showShop, setShowShop] = useState(false);
+    const [showMinigames, setShowMinigames] = useState(false);
+    const [isFirstVisit, setIsFirstVisit] = useState(false);
 
     // Update progress when it changes
     useEffect(() => {
@@ -101,8 +112,27 @@ export default function Home() {
         };
     }, [progressManager]);
 
-    // Get all stages with translated content
-    const stages = levelManager.getAllStages(t);
+    // Check for first visit and show difficulty selector
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const hasVisitedBefore = localStorage.getItem("gitgud-has-visited");
+            const hasSelectedDifficulty = localStorage.getItem("gitgud-difficulty");
+
+            // Show difficulty selector if it's the first visit OR no difficulty has been selected
+            if (!hasVisitedBefore || !hasSelectedDifficulty) {
+                setIsFirstVisit(true);
+                setShowDifficultySelector(true);
+                localStorage.setItem("gitgud-has-visited", "true");
+            }
+        }
+    }, []);
+
+    // Get all stages with translated content - filtered by difficulty
+    const allStages = levelManager.getAllStages(t);
+    const availableStageIds = getAvailableStagesForDifficulty(currentDifficulty);
+    const stages = Object.fromEntries(
+        Object.entries(allStages).filter(([stageId]) => availableStageIds.includes(stageId)),
+    );
 
     // Navigation function to use correct URL structure for [level] dynamic route
     const navigateToLevel = (stageId: string, levelId: number) => {
@@ -220,28 +250,62 @@ export default function Home() {
                     </AnimatedElement>
 
                     <AnimatedElement delay={600}>
-                        <div className="mt-6 flex flex-col justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-                            <Link href="/intro" className="group w-full sm:w-auto">
-                                <Button
-                                    size="lg"
-                                    className="group relative w-full overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 text-white transition-all duration-300 hover:from-purple-700 hover:to-purple-800 sm:w-auto">
-                                    <span className="relative z-10 flex items-center">
-                                        <Code className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-                                        {t("home.startLearning")}
-                                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                                    </span>
-                                    <span className="absolute bottom-0 left-0 h-1 w-0 bg-white/20 transition-all duration-300 group-hover:w-full"></span>
-                                </Button>
-                            </Link>
-                            <Link href="/playground" className="group w-full sm:w-auto">
+                        <div className="mt-6 flex flex-col justify-center gap-3 sm:mt-10 sm:gap-4">
+                            {/* First row - Main action buttons */}
+                            <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+                                <Link href="/intro" className="group w-full sm:w-auto">
+                                    <Button
+                                        size="lg"
+                                        className="group relative w-full overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 text-white transition-all duration-300 hover:from-purple-700 hover:to-purple-800 sm:w-auto">
+                                        <span className="relative z-10 flex items-center">
+                                            <Code className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+                                            {t("home.startLearning")}
+                                            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                        </span>
+                                        <span className="absolute bottom-0 left-0 h-1 w-0 bg-white/20 transition-all duration-300 group-hover:w-full"></span>
+                                    </Button>
+                                </Link>
+
+                                <Link href="/playground" className="group w-full sm:w-auto">
+                                    <Button
+                                        size="lg"
+                                        variant="outline"
+                                        className="w-full border-purple-700 text-purple-300 transition-all duration-300 hover:border-purple-600 hover:bg-purple-900/50 hover:text-purple-200 sm:w-auto">
+                                        <BookOpen className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+                                        {t("home.cheatSheet")}
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            {/* Second row - Gamification buttons */}
+                            <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-3">
                                 <Button
                                     size="lg"
                                     variant="outline"
+                                    onClick={() => setShowDifficultySelector(true)}
                                     className="w-full border-purple-700 text-purple-300 transition-all duration-300 hover:border-purple-600 hover:bg-purple-900/50 hover:text-purple-200 sm:w-auto">
-                                    <BookOpen className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-                                    {t("home.cheatSheet")}
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    Difficulty
                                 </Button>
-                            </Link>
+
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => setShowShop(true)}
+                                    className="w-full border-yellow-700 text-yellow-300 transition-all duration-300 hover:border-yellow-600 hover:bg-yellow-900/50 hover:text-yellow-200 sm:w-auto">
+                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                    Shop
+                                </Button>
+
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => setShowMinigames(true)}
+                                    className="w-full border-green-700 text-green-300 transition-all duration-300 hover:border-green-600 hover:bg-green-900/50 hover:text-green-200 sm:w-auto">
+                                    <Gamepad2 className="mr-2 h-4 w-4" />
+                                    Mini Games
+                                </Button>
+                            </div>
                         </div>
                     </AnimatedElement>
                 </section>
@@ -569,6 +633,20 @@ export default function Home() {
                     </section>
                 </AnimatedElement>
             </div>
+
+            {/* New Gamification Dialogs */}
+            <DifficultySelector
+                isOpen={showDifficultySelector}
+                onClose={() => {
+                    setShowDifficultySelector(false);
+                    setIsFirstVisit(false);
+                }}
+                isInitialSelection={isFirstVisit}
+            />
+
+            <Shop isOpen={showShop} onClose={() => setShowShop(false)} />
+
+            <Minigames isOpen={showMinigames} onClose={() => setShowMinigames(false)} />
         </PageLayout>
     );
 }

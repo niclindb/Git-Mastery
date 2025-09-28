@@ -8,6 +8,7 @@ import { FileEditor } from "~/components/FileEditor";
 import { ProgressBar } from "~/components/ProgressBar";
 import { useGameContext } from "~/contexts/GameContext";
 import { type LevelType } from "~/types";
+import { highlightGitCommands } from "~/lib/textHighlighting";
 import {
     HelpCircleIcon,
     ArrowRightIcon,
@@ -233,19 +234,38 @@ export default function LevelPage() {
                     }
                 }
             } else {
-                // No URL params, allow sync from GameContext state
+                // No URL params, load from localStorage and sync URL
+                console.log("No URL params found, loading from localStorage");
+                const progress = progressManager.getProgress();
+                if (progress.currentStage && progress.currentLevel) {
+                    // Use localStorage values if they differ from current context
+                    if (currentStage !== progress.currentStage || currentLevel !== progress.currentLevel) {
+                        handleLevelFromUrl(progress.currentStage, progress.currentLevel);
+                    }
+                }
                 setUrlParamsProcessed(true);
+                // Sync URL to match current state
+                syncURLWithCurrentLevel();
             }
         }
-    }, [searchParams, levelManager, handleLevelFromUrl, currentStage, currentLevel]);
+    }, [
+        searchParams,
+        levelManager,
+        handleLevelFromUrl,
+        currentStage,
+        currentLevel,
+        progressManager,
+        syncURLWithCurrentLevel,
+    ]);
 
-    // Sync URL only when explicitly needed (not automatically)
+    // Sync URL after level changes (including next level)
     useEffect(() => {
-        // Only sync URL if we have processed URL params and there were no URL params to begin with
-        if (urlParamsProcessed && !searchParams.get("stage") && !searchParams.get("level")) {
+        // Always sync URL when stage or level changes, but only after URL params are processed
+        if (urlParamsProcessed) {
+            console.log(`Syncing URL: ${currentStage}-${currentLevel}`);
             syncURLWithCurrentLevel();
         }
-    }, [currentStage, currentLevel, syncURLWithCurrentLevel, urlParamsProcessed, searchParams]);
+    }, [currentStage, currentLevel, syncURLWithCurrentLevel, urlParamsProcessed]);
 
     // Get the current level data with translation
     const levelData: LevelType | null = levelManager.getLevel(currentStage, currentLevel, t);
@@ -428,7 +448,7 @@ export default function LevelPage() {
                             <h3 className="mb-1 font-medium">{t("level.hints")}:</h3>
                             <ul className="list-inside list-disc space-y-1">
                                 {levelData.hints.map((hint, index) => (
-                                    <li key={index}>{hint}</li>
+                                    <li key={index}>{highlightGitCommands(hint)}</li>
                                 ))}
                             </ul>
                         </div>

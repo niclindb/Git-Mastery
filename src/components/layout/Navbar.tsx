@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import {
     GitBranch,
@@ -25,7 +25,8 @@ interface NavbarProps {
 
 export function Navbar({ showLevelInfo = false }: NavbarProps) {
     const pathname = usePathname();
-    const { currentStage, currentLevel } = useGameContext();
+    const router = useRouter();
+    const { currentStage, currentLevel, progressManager } = useGameContext();
     const { language, setLanguage, t } = useLanguage();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [starAnimation, setStarAnimation] = useState(false);
@@ -45,6 +46,16 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
     // Toggle mobile menu
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
+    };
+
+    // Navigate to learning - use localStorage for current level
+    const navigateToLearning = () => {
+        const progress = progressManager.getProgress();
+        const stageId = progress.currentStage;
+        const levelId = progress.currentLevel;
+
+        // Navigate to the current level from localStorage
+        router.push(`/${stageId.toLowerCase()}?stage=${stageId}&level=${levelId}`);
     };
 
     // Effect to periodically animate the star button
@@ -202,12 +213,10 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                         </Link>
                     )}
 
-                    <Link href="/level">
-                        <Button className="bg-purple-600 text-white hover:bg-purple-700">
-                            <Code className="mr-2 h-4 w-4" />
-                            {t("nav.startLearning")}
-                        </Button>
-                    </Link>
+                    <Button onClick={navigateToLearning} className="bg-purple-600 text-white hover:bg-purple-700">
+                        <Code className="mr-2 h-4 w-4" />
+                        {t("nav.startLearning")}
+                    </Button>
                 </div>
 
                 {/* Mobile menu button */}
@@ -316,12 +325,15 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                         </Link>
 
                         {isHomePage && (
-                            <Link href="/level" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="mt-2 w-full bg-purple-600 text-white hover:bg-purple-700">
-                                    <Code className="mr-2 h-4 w-4" />
-                                    {t("nav.startLearning")}
-                                </Button>
-                            </Link>
+                            <Button
+                                onClick={() => {
+                                    navigateToLearning();
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="mt-2 w-full bg-purple-600 text-white hover:bg-purple-700">
+                                <Code className="mr-2 h-4 w-4" />
+                                {t("nav.startLearning")}
+                            </Button>
                         )}
                     </div>
                 </div>

@@ -7,8 +7,9 @@ import { FileSystem } from "~/models/FileSystem";
 import { LevelManager } from "~/models/LevelManager";
 import { ProgressManager } from "~/models/ProgressManager";
 import { GitRepository } from "~/models/GitRepository";
-import type { GameContextProps } from "~/types";
+import type { GameContextProps, DifficultyLevel } from "~/types";
 import { useLanguage } from "~/contexts/LanguageContext";
+import { getDifficultyConfig } from "~/config/difficulties";
 
 const GameContext = createContext<GameContextProps | undefined>(undefined);
 
@@ -50,6 +51,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Story dialog trigger state
     const [shouldShowStoryDialog, setShouldShowStoryDialog] = useState<boolean>(false);
 
+    // Difficulty system state
+    const [currentDifficulty, setCurrentDifficulty] = useState<DifficultyLevel>(
+        typeof window !== "undefined"
+            ? (localStorage.getItem("gitgud-difficulty") as DifficultyLevel) || "beginner"
+            : "beginner",
+    );
+
     // Toggle advanced mode
     const toggleAdvancedMode = () => {
         setIsAdvancedMode(prev => {
@@ -57,6 +65,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (typeof window !== "undefined") localStorage.setItem("gitgud-advanced-mode", newMode.toString());
             return newMode;
         });
+    };
+
+    // Update difficulty level
+    const handleSetCurrentDifficulty = (difficulty: DifficultyLevel) => {
+        setCurrentDifficulty(difficulty);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("gitgud-difficulty", difficulty);
+        }
     };
 
     // Separate file editor states for different modes
@@ -490,6 +506,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isFileEditorOpen,
         isAdvancedMode,
         shouldShowStoryDialog,
+        currentDifficulty,
         currentFile: getCurrentFile(),
 
         handleCommand,
@@ -506,6 +523,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         syncURLWithCurrentLevel,
         handleLevelFromUrl,
         setShouldShowStoryDialog,
+        setCurrentDifficulty: handleSetCurrentDifficulty,
         isCommitDialogOpen,
         handleCommit,
         closeCommitDialog,

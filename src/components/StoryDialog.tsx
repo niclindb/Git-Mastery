@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { type StoryContext } from "~/types";
 import { useLanguage } from "~/contexts/LanguageContext";
 import { BookOpen, Code } from "lucide-react";
+import { highlightGitCommands } from "~/lib/textHighlighting";
 
 interface StoryDialogProps {
     isOpen: boolean;
@@ -58,16 +59,16 @@ export function StoryDialog({
                 </DialogHeader>
 
                 <div className="space-y-4 overflow-y-auto py-4">
-                    <div className="whitespace-pre-line text-purple-200">{story.narrative}</div>
+                    <div className="whitespace-pre-line text-purple-200">{highlightGitCommands(story.narrative)}</div>
 
                     <div className="rounded-md border border-purple-800/30 bg-purple-900/30 p-3">
                         <h3 className="mb-2 font-medium text-purple-400">{t("level.realWorldContext")}</h3>
-                        <p className="text-purple-200">{story.realWorldContext}</p>
+                        <p className="text-purple-200">{highlightGitCommands(story.realWorldContext)}</p>
                     </div>
 
                     <div className="rounded-md border border-purple-700/50 bg-purple-900/30 p-3">
                         <h3 className="mb-2 font-medium text-purple-300">{t("level.task")}</h3>
-                        <p className="text-purple-200">{story.taskIntroduction}</p>
+                        <p className="text-purple-200">{highlightGitCommands(story.taskIntroduction)}</p>
                     </div>
                 </div>
 

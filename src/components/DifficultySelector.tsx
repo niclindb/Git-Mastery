@@ -1,0 +1,156 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { CheckCircle2, Settings } from "lucide-react";
+import { useGameContext } from "~/contexts/GameContext";
+import { DIFFICULTIES } from "~/config/difficulties";
+import type { DifficultyLevel } from "~/types";
+
+interface DifficultySelectorProps {
+    isOpen: boolean;
+    onClose: () => void;
+    isInitialSelection?: boolean;
+}
+
+export function DifficultySelector({ isOpen, onClose, isInitialSelection = false }: DifficultySelectorProps) {
+    const { currentDifficulty, setCurrentDifficulty } = useGameContext();
+    const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(currentDifficulty);
+
+    const handleConfirm = () => {
+        setCurrentDifficulty(selectedDifficulty);
+        onClose();
+    };
+
+    const getDifficultyColorClasses = (difficulty: DifficultyLevel, isSelected: boolean) => {
+        const baseClasses = "transition-all duration-300 cursor-pointer";
+
+        if (isSelected) {
+            switch (difficulty) {
+                case "beginner":
+                    return `${baseClasses} border-green-500/50 bg-green-900/20 ring-2 ring-green-500/30`;
+                case "advanced":
+                    return `${baseClasses} border-blue-500/50 bg-blue-900/20 ring-2 ring-blue-500/30`;
+                case "pro":
+                    return `${baseClasses} border-purple-500/50 bg-purple-900/20 ring-2 ring-purple-500/30`;
+            }
+        }
+
+        switch (difficulty) {
+            case "beginner":
+                return `${baseClasses} border-green-800/30 bg-green-900/10 hover:border-green-600 hover:bg-green-900/20`;
+            case "advanced":
+                return `${baseClasses} border-blue-800/30 bg-blue-900/10 hover:border-blue-600 hover:bg-blue-900/20`;
+            case "pro":
+                return `${baseClasses} border-purple-800/30 bg-purple-900/10 hover:border-purple-600 hover:bg-purple-900/20`;
+            default:
+                return baseClasses;
+        }
+    };
+
+    const getDifficultyTextColor = (difficulty: DifficultyLevel) => {
+        switch (difficulty) {
+            case "beginner":
+                return "text-green-400";
+            case "advanced":
+                return "text-blue-400";
+            case "pro":
+                return "text-purple-400";
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={() => !isInitialSelection && onClose()}>
+            <DialogContent className="max-w-4xl border-purple-900/20 bg-[#1a1625] text-purple-100">
+                {isInitialSelection && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 transform">
+                        <div className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-xs font-semibold text-white">
+                            🎉 Welcome! First time here?
+                        </div>
+                    </div>
+                )}
+
+                <DialogHeader className="text-center">
+                    <DialogTitle className="flex items-center justify-center text-2xl text-white">
+                        <Settings className="mr-2 h-6 w-6 text-purple-400" />
+                        {isInitialSelection ? "Welcome to Git-Gud! 🚀" : "Change Difficulty Level"}
+                    </DialogTitle>
+                    <p className="text-purple-300">
+                        {isInitialSelection
+                            ? "Before we start your Git journey, let's choose the right difficulty level for you. Don't worry - you can change this anytime!"
+                            : "You can change this anytime to adjust the learning complexity"}
+                    </p>
+                </DialogHeader>
+
+                <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {Object.values(DIFFICULTIES).map(diff => (
+                        <Card
+                            key={diff.id}
+                            className={getDifficultyColorClasses(diff.id, selectedDifficulty === diff.id)}
+                            onClick={() => setSelectedDifficulty(diff.id)}>
+                            <CardHeader className="text-center">
+                                <div className="mx-auto mb-2 text-4xl">{diff.icon}</div>
+                                <CardTitle className={`text-xl ${getDifficultyTextColor(diff.id)}`}>
+                                    {diff.name}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <p className="text-center text-sm text-purple-200">{diff.description}</p>
+
+                                <div className="space-y-2">
+                                    <div className="text-xs text-purple-400">
+                                        <strong>Topics covered:</strong>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                        {diff.stages.map(stage => (
+                                            <span
+                                                key={stage}
+                                                className={`rounded-full px-2 py-1 text-xs ${getDifficultyTextColor(diff.id)} bg-opacity-20`}
+                                                style={{ backgroundColor: `var(--${diff.color}-900)` }}>
+                                                {stage}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 text-center">
+                                    <div className="text-xs text-purple-400">Max Points: {diff.maxPoints}</div>
+                                </div>
+
+                                {selectedDifficulty === diff.id && (
+                                    <div className="flex justify-center pt-2">
+                                        <CheckCircle2 className={`h-6 w-6 ${getDifficultyTextColor(diff.id)}`} />
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                <div className="mt-6 flex justify-center space-x-4">
+                    {!isInitialSelection && (
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            className="border-purple-700 text-purple-300 hover:bg-purple-900/50">
+                            Cancel
+                        </Button>
+                    )}
+                    <Button
+                        onClick={handleConfirm}
+                        className={`${
+                            selectedDifficulty === "beginner"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : selectedDifficulty === "advanced"
+                                  ? "bg-blue-600 hover:bg-blue-700"
+                                  : "bg-purple-600 hover:bg-purple-700"
+                        } text-white`}>
+                        {isInitialSelection ? "Start Learning" : "Apply Changes"}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}

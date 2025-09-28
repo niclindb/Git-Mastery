@@ -4,6 +4,20 @@ import type { LevelManager } from "~/models/LevelManager";
 import type { ProgressManager } from "~/models/ProgressManager";
 import type { GitRepository } from "~/models/GitRepository";
 
+// Difficulty levels
+export type DifficultyLevel = "beginner" | "advanced" | "pro";
+
+// Difficulty configuration
+export interface DifficultyConfig {
+    id: DifficultyLevel;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    stages: string[]; // Which stages are available for this difficulty
+    maxPoints: number;
+}
+
 export interface FileSystemItem {
     type: "file" | "directory";
     name: string;
@@ -170,6 +184,7 @@ export interface GameContextProps {
     isFileEditorOpen: boolean;
     isAdvancedMode: boolean;
     shouldShowStoryDialog: boolean;
+    currentDifficulty: DifficultyLevel;
     currentFile: { name: string; content: string };
     isCommitDialogOpen: boolean;
 
@@ -189,6 +204,7 @@ export interface GameContextProps {
     syncURLWithCurrentLevel: () => void;
     handleLevelFromUrl: (stageId: string, levelId: number) => void;
     setShouldShowStoryDialog: (show: boolean) => void;
+    setCurrentDifficulty: (difficulty: DifficultyLevel) => void;
     handleCommit: (message: string) => void;
     closeCommitDialog: () => void;
 }
