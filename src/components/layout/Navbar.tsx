@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import {
     GitBranch,
@@ -18,6 +18,7 @@ import {
 import { useGameContext } from "~/contexts/GameContext";
 import { useLanguage } from "~/contexts/LanguageContext";
 import { ClientOnly } from "~/components/ClientOnly";
+import { BadgeDisplay } from "~/components/BadgeDisplay";
 
 interface NavbarProps {
     showLevelInfo?: boolean;
@@ -25,7 +26,8 @@ interface NavbarProps {
 
 export function Navbar({ showLevelInfo = false }: NavbarProps) {
     const pathname = usePathname();
-    const { currentStage, currentLevel } = useGameContext();
+    const router = useRouter();
+    const { currentStage, currentLevel, progressManager } = useGameContext();
     const { language, setLanguage, t } = useLanguage();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [starAnimation, setStarAnimation] = useState(false);
@@ -45,6 +47,16 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
     // Toggle mobile menu
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
+    };
+
+    // Navigate to learning - use localStorage for current level
+    const navigateToLearning = () => {
+        const progress = progressManager.getProgress();
+        const stageId = progress.currentStage;
+        const levelId = progress.currentLevel;
+
+        // Navigate to the current level from localStorage
+        router.push(`/${stageId.toLowerCase()}?stage=${stageId}&level=${levelId}`);
     };
 
     // Effect to periodically animate the star button
@@ -90,12 +102,16 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                     <span className="text-xl font-bold text-white">GitGud</span>
                 </Link>
 
-                {/* Current level info - only show on larger screens when relevant */}
+                {/* Current level info - responsive display */}
                 {showLevelInfo && (
                     <ClientOnly>
-                        <span className="ml-4 hidden text-purple-300 md:block">
+                        <div className="ml-4 hidden text-purple-300 xl:block">
                             Level {currentLevel} - {currentStage}
-                        </span>
+                        </div>
+                        <div className="ml-4 hidden text-purple-300 lg:block xl:hidden">
+                            L{currentLevel} - {currentStage}
+                        </div>
+                        <div className="ml-4 hidden text-purple-300 md:block lg:hidden">L{currentLevel}</div>
                     </ClientOnly>
                 )}
 
@@ -111,6 +127,11 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
 
                 {/* Show FAQ text on relevant pages */}
                 {isFaqPage && <span className="ml-4 hidden text-purple-300 md:block">{t("nav.faq")}</span>}
+
+                {/* Badge display - only show on larger screens to avoid overcrowding */}
+                <div className="ml-4 hidden lg:block">
+                    <BadgeDisplay />
+                </div>
 
                 {/* Desktop navigation */}
                 <div className="ml-auto hidden items-center space-x-4 md:flex">
@@ -202,12 +223,10 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                         </Link>
                     )}
 
-                    <Link href="/level">
-                        <Button className="bg-purple-600 text-white hover:bg-purple-700">
-                            <Code className="mr-2 h-4 w-4" />
-                            {t("nav.startLearning")}
-                        </Button>
-                    </Link>
+                    <Button onClick={navigateToLearning} className="bg-purple-600 text-white hover:bg-purple-700">
+                        <Code className="mr-2 h-4 w-4" />
+                        {t("nav.startLearning")}
+                    </Button>
                 </div>
 
                 {/* Mobile menu button */}
@@ -248,6 +267,11 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                                 </div>
                             </ClientOnly>
                         )}
+
+                        {/* Badge display for mobile */}
+                        <div className="mb-4 flex justify-center lg:hidden">
+                            <BadgeDisplay className="justify-center" />
+                        </div>
 
                         {/* GitHub star for mobile menu (with text) */}
                         <a
@@ -316,12 +340,15 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                         </Link>
 
                         {isHomePage && (
-                            <Link href="/level" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="mt-2 w-full bg-purple-600 text-white hover:bg-purple-700">
-                                    <Code className="mr-2 h-4 w-4" />
-                                    {t("nav.startLearning")}
-                                </Button>
-                            </Link>
+                            <Button
+                                onClick={() => {
+                                    navigateToLearning();
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="mt-2 w-full bg-purple-600 text-white hover:bg-purple-700">
+                                <Code className="mr-2 h-4 w-4" />
+                                {t("nav.startLearning")}
+                            </Button>
                         )}
                     </div>
                 </div>

@@ -8,6 +8,7 @@ import { FileEditor } from "~/components/FileEditor";
 import { ProgressBar } from "~/components/ProgressBar";
 import { useGameContext } from "~/contexts/GameContext";
 import { type LevelType } from "~/types";
+import { highlightGitCommands } from "~/lib/textHighlighting";
 import {
     HelpCircleIcon,
     ArrowRightIcon,
@@ -26,6 +27,7 @@ import { PageLayout } from "~/components/layout/PageLayout";
 import { ClientOnly } from "~/components/ClientOnly";
 import { useLanguage } from "~/contexts/LanguageContext";
 import { StoryDialog } from "~/components/StoryDialog";
+import { GitMascot } from "~/components/GitMascot";
 import dynamic from "next/dynamic";
 import { TerminalSkeleton } from "~/components/ui/TerminalSkeleton";
 import { CommitDialog } from "~/components/CommitDialog";
@@ -66,6 +68,8 @@ export default function LevelPage() {
         openFileEditor,
         syncURLWithCurrentLevel,
         handleLevelFromUrl,
+        shouldShowStoryDialog,
+        setShouldShowStoryDialog,
     } = useGameContext();
 
     const searchParams = useSearchParams();
@@ -209,10 +213,9 @@ export default function LevelPage() {
         }
     };
 
-    // Handle URL query parameters for level selection
+    // Handle URL query parameters for level selection - HIGHEST PRIORITY
     useEffect(() => {
-        // Only process URL params once per mount
-        if (typeof window !== "undefined" && !urlParamsProcessed) {
+        if (typeof window !== "undefined") {
             const stageParam = searchParams.get("stage");
             const levelParam = searchParams.get("level");
 
@@ -222,21 +225,48 @@ export default function LevelPage() {
                     // Check if level exists
                     const levelExists = levelManager.getLevel(stageParam, levelNum);
                     if (levelExists) {
-                        handleLevelFromUrl(stageParam, levelNum);
+                        // Check if we need to update the game context
+                        if (currentStage !== stageParam || currentLevel !== levelNum) {
+                            console.log(`Loading level from URL: ${stageParam}-${levelNum}`);
+                            handleLevelFromUrl(stageParam, levelNum);
+                        }
                         setUrlParamsProcessed(true);
+                        levelParamProcessedRef.current = true;
                     }
                 }
+            } else {
+                // No URL params, load from localStorage and sync URL
+                console.log("No URL params found, loading from localStorage");
+                const progress = progressManager.getProgress();
+                if (progress.currentStage && progress.currentLevel) {
+                    // Use localStorage values if they differ from current context
+                    if (currentStage !== progress.currentStage || currentLevel !== progress.currentLevel) {
+                        handleLevelFromUrl(progress.currentStage, progress.currentLevel);
+                    }
+                }
+                setUrlParamsProcessed(true);
+                // Sync URL to match current state
+                syncURLWithCurrentLevel();
             }
         }
-    }, [searchParams, levelManager, handleLevelFromUrl, urlParamsProcessed]);
+    }, [
+        searchParams,
+        levelManager,
+        handleLevelFromUrl,
+        currentStage,
+        currentLevel,
+        progressManager,
+        syncURLWithCurrentLevel,
+    ]);
 
-    // Always sync URL when component mounts or if currentStage/currentLevel changes
+    // Sync URL after level changes (including next level)
     useEffect(() => {
-        // Only sync URL if we're not already processing URL parameters
-        if (!levelParamProcessedRef.current) {
+        // Always sync URL when stage or level changes, but only after URL params are processed
+        if (urlParamsProcessed) {
+            console.log(`Syncing URL: ${currentStage}-${currentLevel}`);
             syncURLWithCurrentLevel();
         }
-    }, [currentStage, currentLevel, syncURLWithCurrentLevel]);
+    }, [currentStage, currentLevel, syncURLWithCurrentLevel, urlParamsProcessed]);
 
     // Get the current level data with translation
     const levelData: LevelType | null = levelManager.getLevel(currentStage, currentLevel, t);
@@ -272,20 +302,26 @@ export default function LevelPage() {
         handleNextLevel();
     };
 
-    // Story dialog display logic - Reset when levels change
+    // Story dialog display logic - Reset when levels change or triggered by GameContext
     useEffect(() => {
         if (levelData?.story) {
-            if (!userClosedStoryDialog) {
+            if (!userClosedStoryDialog || shouldShowStoryDialog) {
                 if (!isAdvancedMode) {
                     setShowStoryDialog(true);
                 } else {
                     setShowStoryDialog(false);
                 }
+
+                // Reset the trigger flag
+                if (shouldShowStoryDialog) {
+                    setShouldShowStoryDialog(false);
+                }
             }
         } else {
             setShowStoryDialog(false);
         }
-    }, [currentStage, currentLevel, levelData, isAdvancedMode, userClosedStoryDialog]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStage, currentLevel, levelData, isAdvancedMode, userClosedStoryDialog, shouldShowStoryDialog]);
 
     const handleCloseStoryDialog = () => {
         setShowStoryDialog(false);
@@ -413,7 +449,7 @@ export default function LevelPage() {
                             <h3 className="mb-1 font-medium">{t("level.hints")}:</h3>
                             <ul className="list-inside list-disc space-y-1">
                                 {levelData.hints.map((hint, index) => (
-                                    <li key={index}>{hint}</li>
+                                    <li key={index}>{highlightGitCommands(hint)}</li>
                                 ))}
                             </ul>
                         </div>
@@ -560,8 +596,9 @@ export default function LevelPage() {
                     <ProgressBar score={progress.score} maxScore={150} className="mb-6" />
 
                     {/* Ensuring equal heights between challenge card and terminal */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <Card className="flex h-[580px] flex-col overflow-hidden border-purple-900/20 bg-purple-900/10 md:order-2">
+                    {/* Portrait monitors (taller than wide) and mobile use vertical layout */}
+                    <div className="grid grid-cols-1 gap-4 portrait:grid-cols-1 portrait:grid-rows-[1fr,auto] landscape:lg:grid-cols-2 landscape:lg:grid-rows-1">
+                        <Card className="flex h-[580px] flex-col overflow-hidden border-purple-900/20 bg-purple-900/10 portrait:order-1 portrait:h-auto portrait:min-h-[300px] landscape:md:order-2 landscape:lg:h-[580px]">
                             <CardHeader className="shrink-0">
                                 <CardTitle className="flex items-center text-white">
                                     <Shield className="mr-2 h-5 w-5 text-purple-400" />
@@ -570,7 +607,7 @@ export default function LevelPage() {
                             </CardHeader>
                             <CardContent className="flex-grow overflow-auto pb-4">{renderLevelChallenge()}</CardContent>
                         </Card>
-                        <Terminal className="h-[580px] rounded-md" />
+                        <Terminal className="h-[580px] rounded-md portrait:order-2 portrait:h-[400px] landscape:lg:h-[580px]" />
                     </div>
 
                     <FileEditor
@@ -581,6 +618,17 @@ export default function LevelPage() {
                     />
 
                     <CommitDialog />
+
+                    {/* Git Mascot - only show if purchased */}
+                    <ClientOnly>
+                        <GitMascot
+                            isActive={progressManager.getPurchasedItems().includes("git-mascot")}
+                            onEncouragement={() => {
+                                // Could add sound effects here later
+                                console.log("Mascot is encouraging the player!");
+                            }}
+                        />
+                    </ClientOnly>
                 </div>
             </div>
             {levelData?.story && (

@@ -5,6 +5,11 @@ import { branchesLevels } from "./stages/branches";
 import { mergeLevels } from "./stages/merge";
 import { rebaseLevels } from "./stages/rebase";
 import { remoteLevels } from "./stages/remote";
+import { workflowLevels } from "./stages/workflow";
+import { teamworkLevels } from "./stages/teamwork";
+import { advancedLevels } from "./stages/advanced";
+import { archaeologyLevels } from "./stages/archaeology";
+import { masteryLevels } from "./stages/mastery";
 
 export const allStages = {
     Intro: createStage({
@@ -48,6 +53,41 @@ export const allStages = {
         description: "remote.description",
         icon: "🌐",
         levels: remoteLevels,
+    }),
+    Workflow: createStage({
+        id: "workflow",
+        name: "Git Workflows",
+        description: "Master professional Git workflows and collaboration patterns",
+        icon: "🔄",
+        levels: workflowLevels,
+    }),
+    TeamWork: createStage({
+        id: "teamwork",
+        name: "Team Collaboration",
+        description: "Learn to work effectively with teams using Git collaboration techniques",
+        icon: "👥",
+        levels: teamworkLevels,
+    }),
+    Advanced: createStage({
+        id: "advanced",
+        name: "Advanced Techniques",
+        description: "Master sophisticated Git techniques for complex scenarios",
+        icon: "⚡",
+        levels: advancedLevels,
+    }),
+    Archaeology: createStage({
+        id: "archaeology",
+        name: "Git Archaeology",
+        description: "Investigate code history and perform Git forensics like a detective",
+        icon: "🔍",
+        levels: archaeologyLevels,
+    }),
+    Mastery: createStage({
+        id: "mastery",
+        name: "Git Mastery",
+        description: "The ultimate Git challenges for true masters",
+        icon: "👑",
+        levels: masteryLevels,
     }),
 };
 

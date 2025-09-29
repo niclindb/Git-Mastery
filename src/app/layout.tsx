@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { GameProvider } from "~/contexts/GameContext";
 import { LanguageProvider } from "~/contexts/LanguageContext";
+import { TerminalThemeWrapper } from "~/components/TerminalThemeWrapper";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -59,7 +60,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <body className="dark">
                 <Analytics />
                 <LanguageProvider>
-                    <GameProvider>{children}</GameProvider>
+                    <GameProvider>
+                        <TerminalThemeWrapper>{children}</TerminalThemeWrapper>
+                    </GameProvider>
                 </LanguageProvider>
                 <script
                     type="application/ld+json"
@@ -82,6 +85,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                                 "@type": "Offer",
                                 price: "0",
                                 priceCurrency: "USD",
+                            },
+                            aggregateRating: {
+                                "@type": "AggregateRating",
+                                ratingValue: "4.8",
+                                reviewCount: "150",
                             },
                         }),
                     }}

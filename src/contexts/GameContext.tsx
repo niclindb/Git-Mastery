@@ -7,8 +7,10 @@ import { FileSystem } from "~/models/FileSystem";
 import { LevelManager } from "~/models/LevelManager";
 import { ProgressManager } from "~/models/ProgressManager";
 import { GitRepository } from "~/models/GitRepository";
-import type { GameContextProps } from "~/types";
+import type { GameContextProps, DifficultyLevel } from "~/types";
 import { useLanguage } from "~/contexts/LanguageContext";
+import { getDifficultyConfig } from "~/config/difficulties";
+import { useSoundManager } from "~/lib/SoundManager";
 
 const GameContext = createContext<GameContextProps | undefined>(undefined);
 
@@ -31,6 +33,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [progressManager] = useState<ProgressManager>(new ProgressManager());
     const { t } = useLanguage();
 
+    // Initialize sound manager with purchased status
+    const hasSoundPack = progressManager.getPurchasedItems().includes("victory-sound");
+    const { playSound } = useSoundManager(hasSoundPack);
+
     const [currentStage, setCurrentStage] = useState<string>(progressManager.getProgress().currentStage);
     const [currentLevel, setCurrentLevel] = useState<number>(progressManager.getProgress().currentLevel);
     const [isLevelCompleted, setIsLevelCompleted] = useState<boolean>(
@@ -47,6 +53,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         typeof window !== "undefined" ? localStorage.getItem("gitgud-advanced-mode") === "true" : false,
     );
 
+    // Story dialog trigger state
+    const [shouldShowStoryDialog, setShouldShowStoryDialog] = useState<boolean>(false);
+
+    // Difficulty system state
+    const [currentDifficulty, setCurrentDifficulty] = useState<DifficultyLevel>(
+        typeof window !== "undefined"
+            ? (localStorage.getItem("gitgud-difficulty") as DifficultyLevel) || "beginner"
+            : "beginner",
+    );
+
     // Toggle advanced mode
     const toggleAdvancedMode = () => {
         setIsAdvancedMode(prev => {
@@ -54,6 +70,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (typeof window !== "undefined") localStorage.setItem("gitgud-advanced-mode", newMode.toString());
             return newMode;
         });
+    };
+
+    // Update difficulty level
+    const handleSetCurrentDifficulty = (difficulty: DifficultyLevel) => {
+        setCurrentDifficulty(difficulty);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("gitgud-difficulty", difficulty);
+        }
     };
 
     // Separate file editor states for different modes
@@ -107,14 +131,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Sync URL with current level state
     const syncURLWithCurrentLevel = useCallback(() => {
-        if (typeof window !== "undefined" && window.location.pathname.includes("/level")) {
-            const currentParams = new URLSearchParams(window.location.search);
-            const currentStageParam = currentParams.get("stage");
-            const currentLevelParam = currentParams.get("level");
+        if (typeof window !== "undefined") {
+            const pathname = window.location.pathname;
+            // Check if we're on a level page (matches pattern /[level])
+            if (
+                pathname !== "/" &&
+                !pathname.includes("/playground") &&
+                !pathname.includes("/faq") &&
+                !pathname.includes("/installation") &&
+                !pathname.includes("/impressum")
+            ) {
+                const currentParams = new URLSearchParams(window.location.search);
+                const currentStageParam = currentParams.get("stage");
+                const currentLevelParam = currentParams.get("level");
 
-            // Only update URL if the parameters have actually changed
-            if (currentStageParam !== currentStage || currentLevelParam !== currentLevel.toString()) {
-                router.replace(`/level?stage=${currentStage}&level=${currentLevel}`, { scroll: false });
+                // Only update URL if the parameters have actually changed
+                if (currentStageParam !== currentStage || currentLevelParam !== currentLevel.toString()) {
+                    router.replace(`/${currentStage.toLowerCase()}?stage=${currentStage}&level=${currentLevel}`, {
+                        scroll: false,
+                    });
+                }
             }
         }
     }, [currentStage, currentLevel, router]);
@@ -273,13 +309,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsLevelCompleted(true);
             progressManager.completeLevel(currentStage, currentLevel);
             setTerminalOutput(prev => [...prev, "🎉 " + t("level.levelCompleted") + " 🎉", t("terminal.typeNext")]);
+
+            // Play victory sound if purchased
+            if (progressManager.getPurchasedItems().includes("victory-sound")) {
+                playSound("levelComplete");
+            }
+
+            // Trigger mascot success animation if purchased
+            if (progressManager.getPurchasedItems().includes("git-mascot")) {
+                // This will trigger the mascot success animation
+                interface WindowWithMascot extends Window {
+                    triggerMascotSuccess?: () => void;
+                }
+                if (typeof window !== "undefined") {
+                    const windowWithMascot = window as WindowWithMascot;
+                    windowWithMascot.triggerMascotSuccess?.();
+                }
+            }
         }
     };
 
     // Move to the next level
     const handleNextLevel = () => {
         if (isLevelCompleted) {
-            const { stageId, levelId } = levelManager.getNextLevel(currentStage, currentLevel);
+            const { stageId, levelId } = levelManager.getNextLevel(currentStage, currentLevel, currentDifficulty);
 
             // Fixed: Check if stageId and levelId are defined before using them
             if (stageId && typeof levelId === "number") {
@@ -299,13 +352,26 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // Close any open editor when switching levels
                 setIsLevelFileEditorOpen(false);
 
+                // Trigger story dialog for the new level (if not in advanced mode)
+                if (!isAdvancedMode) {
+                    setShouldShowStoryDialog(true);
+                }
+
                 // Sync URL with the new level state
                 syncURLWithCurrentLevel();
 
                 return { stageId, levelId };
             } else {
-                // Handle case where there's no next level
-                setTerminalOutput(prev => [...prev, t("terminal.allLevelsCompleted")]);
+                // Handle case where there's no next level in current difficulty - redirect to home
+                setTerminalOutput(prev => [...prev, t("terminal.difficultyCompleted")]);
+
+                // Redirect to home page after a short delay
+                setTimeout(() => {
+                    if (typeof window !== "undefined") {
+                        router.push("/");
+                    }
+                }, 2000);
+
                 return null;
             }
         }
@@ -469,6 +535,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         terminalOutput,
         isFileEditorOpen,
         isAdvancedMode,
+        shouldShowStoryDialog,
+        currentDifficulty,
         currentFile: getCurrentFile(),
 
         handleCommand,
@@ -484,6 +552,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         getEditableFiles,
         syncURLWithCurrentLevel,
         handleLevelFromUrl,
+        setShouldShowStoryDialog,
+        setCurrentDifficulty: handleSetCurrentDifficulty,
         isCommitDialogOpen,
         handleCommit,
         closeCommitDialog,
