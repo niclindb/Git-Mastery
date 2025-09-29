@@ -63,16 +63,16 @@ export function DifficultySelector({ isOpen, onClose, isInitialSelection = false
 
     return (
         <Dialog open={isOpen} onOpenChange={() => !isInitialSelection && onClose()}>
-            <DialogContent className="mx-2 max-h-[90vh] w-[calc(100vw-1rem)] max-w-4xl overflow-y-auto border-purple-900/20 bg-[#1a1625] text-purple-100 sm:mx-6 sm:w-[calc(100vw-3rem)] md:mx-0 md:w-full">
+            <DialogContent className="z-50 mx-2 max-h-[90vh] w-[calc(100vw-1rem)] max-w-4xl overflow-y-auto border-purple-900/20 bg-[#1a1625] text-purple-100 sm:mx-6 sm:w-[calc(100vw-3rem)] md:mx-0 md:w-full">
                 {isInitialSelection && (
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 transform">
+                    <div className="absolute left-1/2 top-2 -translate-x-1/2 transform">
                         <div className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-1 text-xs font-semibold text-white">
                             🎉 Welcome! First time here?
                         </div>
                     </div>
                 )}
 
-                <DialogHeader className="text-center">
+                <DialogHeader className="mt-3 text-center">
                     <DialogTitle className="flex items-center justify-center text-xl text-white sm:text-2xl">
                         <Settings className="mr-2 h-5 w-5 text-purple-400 sm:h-6 sm:w-6" />
                         {isInitialSelection ? "Welcome to Git-Gud! 🚀" : "Change Difficulty Level"}
