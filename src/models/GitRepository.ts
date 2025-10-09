@@ -236,6 +236,15 @@ export class GitRepository {
         return branchCommits;
     }
 
+    // Get commits as ordered array (oldest to newest)
+    public getCommitHistory(): string[] {
+        const currentBranchState = this.branchStates[this.currentBranch];
+        if (!currentBranchState) return [];
+
+        // Return commits in chronological order (oldest first)
+        return [...currentBranchState.commits];
+    }
+
     public hasUnpushedCommits(): boolean {
         const currentBranchState = this.branchStates[this.currentBranch];
         if (!currentBranchState) return false;
@@ -726,29 +735,92 @@ export class GitRepository {
     public stashSave(message: string = "WIP on " + this.currentBranch): boolean {
         if (!this.initialized) return false;
 
+        const currentBranchState = this.branchStates[this.currentBranch];
+        if (!currentBranchState) return false;
+
+        // Capture all current changes from filesystem
+        const changes: Record<string, string> = {};
+        let hasChanges = false;
+
+        // Check all files with a status (staged, modified, etc.)
+        Object.keys(currentBranchState.status).forEach(file => {
+            const fileStatus = currentBranchState.status[file];
+
+            // Get current file content from filesystem
+            const currentContent = this.fileSystem.getFileContents("/" + file);
+
+            if (fileStatus === "modified" || fileStatus === "staged") {
+                // Save the current content
+                changes[file] = currentContent ?? "";
+                hasChanges = true;
+            }
+        });
+
+        // If no changes to stash, return false
+        if (!hasChanges) return false;
+
+        // Save the stash entry with actual file contents
         this.stash.push({
             message,
             timestamp: new Date(),
-            changes: {},
+            changes,
         });
 
-        Object.keys(this.status).forEach(file => {
-            if (this.status[file] === "modified" || this.status[file] === "untracked") {
-                delete this.status[file];
+        // Revert files to their committed state in the filesystem
+        Object.keys(changes).forEach(file => {
+            const committedContent = currentBranchState.files[file];
+            if (committedContent !== undefined) {
+                // Restore to committed content
+                this.fileSystem.writeFile("/" + file, committedContent);
+                currentBranchState.workingDirectory[file] = committedContent;
+            } else {
+                // File doesn't exist in committed state, delete it
+                this.fileSystem.delete("/" + file);
+                delete currentBranchState.workingDirectory[file];
             }
+        });
+
+        // Clear status for stashed files (both global and branch-specific)
+        Object.keys(changes).forEach(file => {
+            delete this.status[file];
+            delete currentBranchState.status[file];
         });
 
         return true;
     }
 
-    public stashApply(pop = false): boolean {
-        if (!this.initialized || this.stash.length === 0) return false;
+    public stashApply(pop = false): { success: boolean; files: string[] } {
+        if (!this.initialized || this.stash.length === 0) {
+            return { success: false, files: [] };
+        }
 
+        const currentBranchState = this.branchStates[this.currentBranch];
+        if (!currentBranchState) return { success: false, files: [] };
+
+        // Get the most recent stash
+        const stashEntry = this.stash[this.stash.length - 1];
+        if (!stashEntry) return { success: false, files: [] };
+
+        const restoredFiles: string[] = [];
+
+        // Restore the stashed changes to filesystem and working directory
+        Object.entries(stashEntry.changes).forEach(([file, content]) => {
+            // Write to filesystem
+            this.fileSystem.writeFile("/" + file, content);
+            // Update working directory state
+            currentBranchState.workingDirectory[file] = content;
+            // Mark as modified (both global and branch-specific)
+            this.status[file] = "modified";
+            currentBranchState.status[file] = "modified";
+            restoredFiles.push(file);
+        });
+
+        // Remove from stash if pop (not just apply)
         if (pop) {
             this.stash.pop();
         }
 
-        return true;
+        return { success: true, files: restoredFiles };
     }
 
     public getStash(): Array<{ message: string; timestamp: Date }> {
@@ -844,6 +916,16 @@ export class GitRepository {
         const currentBranchState = this.branchStates[this.currentBranch];
         if (!currentBranchState) return false;
 
+        // Find the index of the target commit in the current branch
+        const targetIndex = currentBranchState.commits.indexOf(commitId);
+        if (targetIndex === -1) {
+            return false; // Commit not found in current branch
+        }
+
+        // Remove commits after the target commit
+        const removedCommits = currentBranchState.commits.slice(targetIndex + 1);
+        currentBranchState.commits = currentBranchState.commits.slice(0, targetIndex + 1);
+
         switch (mode) {
             case "hard":
                 // Reset working directory, staging area, and HEAD
@@ -878,8 +960,20 @@ export class GitRepository {
                 break;
 
             case "soft":
-                // Only reset HEAD, keep staging area and working directory
-                // In this simulation, we don't need to do much for soft reset
+                // Only reset HEAD (commits), keep staging area and working directory
+                // The files from removed commits should now appear as staged
+                removedCommits.forEach(removedCommitId => {
+                    const removedCommit = this.commits[removedCommitId];
+                    if (removedCommit) {
+                        removedCommit.files.forEach(filePath => {
+                            // Mark files from removed commits as staged
+                            if (this.status[filePath] !== "staged") {
+                                this.status[filePath] = "staged";
+                                currentBranchState.status[filePath] = "staged";
+                            }
+                        });
+                    }
+                });
                 break;
         }
 

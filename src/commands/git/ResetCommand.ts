@@ -41,8 +41,8 @@ export class ResetCommand implements Command {
             target = args.positionalArgs[0] ?? "HEAD";
         }
 
-        // Get all commits for the current branch
-        const commits = Object.keys(gitRepository.getCommits());
+        // Get all commits for the current branch (in chronological order)
+        const commits = gitRepository.getCommitHistory();
 
         if (commits.length === 0) {
             if (target === "HEAD") {
@@ -128,6 +128,8 @@ export class ResetCommand implements Command {
 
             case "soft":
                 // Only move HEAD, keep staging area and working directory unchanged
+                gitRepository.resetToCommit(targetCommitId, "soft");
+
                 if (commitsBack > 0) {
                     return [
                         `HEAD is now at ${targetCommitId.substring(0, 7)} (${commitsBack} commit${commitsBack > 1 ? "s" : ""} behind)`,

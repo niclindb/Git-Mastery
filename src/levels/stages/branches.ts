@@ -129,7 +129,8 @@ const branchesLevel4 = createLevel({
     hints: ["branches.level4.hint1", "branches.level4.hint2"],
     requirements: [
         createRequirement({
-            command: "git checkout",
+            command: "git switch",
+            alternativeCommands: ["git checkout"],
             description: "branches.level4.requirement1.description",
             successMessage: "branches.level4.requirement1.success",
         }),
@@ -168,8 +169,8 @@ const branchesLevel5 = createLevel({
     hints: ["branches.level5.hint1", "branches.level5.hint2"],
     requirements: [
         createRequirement({
-            command: "git checkout",
-            requiresArgs: ["-b"],
+            command: "git switch",
+            requiresArgs: ["-c"],
             description: "branches.level5.requirement1.description",
             successMessage: "branches.level5.requirement1.success",
         }),
