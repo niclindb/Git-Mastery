@@ -12,21 +12,22 @@ const teamworkLevel1 = createLevel({
     name: "Team Collaboration Basics",
     description: "Learn how to work effectively with a team using Git",
     objectives: [
-        "Get the latest code from the team repository",
-        "Set up your local development environment",
-        "Make your first team contribution",
-        "Push changes to shared repository"
+        "Synchronize your local repository with the team's latest code",
+        "Create a new feature branch for your contribution",
+        "Edit the team.md file and add your name to the team members list",
+        "Stage and commit your changes with a descriptive message"
     ],
     hints: [
-        "Always pull latest changes before starting work",
-        "Use descriptive commit messages for team visibility",
-        "Communicate with your team about what you're working on",
-        "Follow the team's branching strategy"
+        "Use 'git pull origin main' to get the latest team code",
+        "Create a new branch with 'git switch -c feature/YOUR-NAME'",
+        "Edit the team.md file to add your name and role",
+        "Stage all changes with 'git add .'",
+        "Commit with a clear message: 'git commit -m \"Add my profile\"'"
     ],
     requirements: [
         createRequirement({
             command: "git pull origin main",
-            alternativeCommands: ["git fetch origin main && git merge origin/main"],
+            alternativeCommands: ["git pull"],
             description: "Pull the latest changes from the team repository",
             successMessage: "Latest changes pulled successfully!"
         }),

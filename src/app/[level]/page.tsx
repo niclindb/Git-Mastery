@@ -271,14 +271,14 @@ export default function LevelPage() {
     // Get the current level data with translation
     const levelData: LevelType | null = levelManager.getLevel(currentStage, currentLevel, t);
     const progress = progressManager.getProgress();
-    
+
     // Get difficulty config for max points
     const difficultyStages = {
         beginner: ["Intro", "Files", "Branches", "Remote"],
         advanced: ["Merge", "Workflow", "TeamWork", "Reset", "Stash"],
         pro: ["Rebase", "Advanced", "Archaeology", "Mastery"],
     };
-    
+
     // Determine current difficulty based on stage
     let currentDifficultyMaxPoints = 150; // Default
     if (difficultyStages.beginner.includes(currentStage)) {
@@ -288,7 +288,7 @@ export default function LevelPage() {
     } else if (difficultyStages.pro.includes(currentStage)) {
         currentDifficultyMaxPoints = 150;
     }
-    
+
     // Get double XP info
     const isDoubleXpActive = progressManager.isDoubleXpActive();
     const doubleXpHoursLeft = progressManager.getDoubleXpRemainingHours();
@@ -623,13 +623,13 @@ export default function LevelPage() {
                     <h1 className="mb-4 text-center text-2xl font-bold text-white sm:mb-6 sm:text-3xl">
                         Git Learning Game
                     </h1>
-                    <ProgressBar 
-                        score={progress.score} 
+                    <ProgressBar
+                        score={progress.score}
                         coins={progress.coins}
                         maxScore={currentDifficultyMaxPoints}
                         isDoubleXpActive={isDoubleXpActive}
                         doubleXpHoursLeft={doubleXpHoursLeft}
-                        className="mb-4 sm:mb-6" 
+                        className="mb-4 sm:mb-6"
                     />
 
                     {/* Mobile-optimized layout: Stack vertically on mobile, side-by-side on desktop */}

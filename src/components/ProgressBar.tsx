@@ -11,13 +11,13 @@ interface ProgressBarProps {
     className?: string;
 }
 
-export function ProgressBar({ 
-    score, 
+export function ProgressBar({
+    score,
     coins,
-    maxScore, 
+    maxScore,
     isDoubleXpActive = false,
     doubleXpHoursLeft = 0,
-    className = "" 
+    className = "",
 }: ProgressBarProps) {
     const { t } = useLanguage();
     const percentage = Math.min(100, Math.round((score / maxScore) * 100));
@@ -47,7 +47,7 @@ export function ProgressBar({
                         )}
                         {/* Double XP Indicator */}
                         {isDoubleXpActive && (
-                            <div className="ml-2 flex items-center rounded-full border border-orange-500/50 bg-gradient-to-r from-orange-600/30 to-red-600/30 px-2 py-0.5 text-xs text-orange-300 animate-pulse">
+                            <div className="animate-pulse ml-2 flex items-center rounded-full border border-orange-500/50 bg-gradient-to-r from-orange-600/30 to-red-600/30 px-2 py-0.5 text-xs text-orange-300">
                                 <Flame className="mr-1 h-3 w-3" />
                                 <span>2x XP</span>
                                 {doubleXpHoursLeft > 0 && (
@@ -73,8 +73,8 @@ export function ProgressBar({
                     {/* Progress bar with optional glow effect for Double XP */}
                     <div
                         className={`h-2.5 rounded-full transition-all duration-300 ease-in-out ${
-                            isDoubleXpActive 
-                                ? "bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-lg shadow-orange-500/50" 
+                            isDoubleXpActive
+                                ? "bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-lg shadow-orange-500/50"
                                 : "bg-gradient-to-r from-purple-500 to-purple-700"
                         }`}
                         style={{ width: `${percentage}%` }}

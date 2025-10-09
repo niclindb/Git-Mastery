@@ -178,8 +178,7 @@ export function Minigames({ isOpen, onClose }: MinigamesProps) {
 
                                             <div className="mb-2 mt-4 text-center">
                                                 <div className="text-sm text-purple-400">
-                                                    <strong>{game.category}</strong> • +{game.coins}{" "}
-                                                    {t("shop.coins")}
+                                                    <strong>{game.category}</strong> • +{game.coins} {t("shop.coins")}
                                                 </div>
                                             </div>
 

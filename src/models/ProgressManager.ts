@@ -63,10 +63,10 @@ export class ProgressManager {
 
             // Apply double XP if active
             const finalScore = this.isDoubleXpActive() ? score * 2 : score;
-            
+
             // Add to score (progress points - never decreases)
             this.progress.score += finalScore;
-            
+
             // Add to coins (shop currency - can be spent)
             this.progress.coins += finalScore;
         }
@@ -149,7 +149,7 @@ export class ProgressManager {
     public completeMinigame(gameId: string, coinReward: number): void {
         if (!this.progress.completedMinigames.includes(gameId)) {
             this.progress.completedMinigames.push(gameId);
-            
+
             // Minigames only give coins (with double XP if active)
             this.addCoins(coinReward);
         }
@@ -239,12 +239,12 @@ export class ProgressManager {
         }
 
         this.progress.gitGudActivated = true;
-        
+
         // Secret bonus: score + coins!
         const bonus = this.isDoubleXpActive() ? 100 : 50;
         this.progress.score += bonus;
         this.progress.coins += bonus;
-        
+
         this.progress.lastSavedAt = new Date().toISOString();
         this.saveProgress();
         return true; // First time activation
