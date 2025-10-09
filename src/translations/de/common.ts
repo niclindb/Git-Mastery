@@ -82,10 +82,18 @@ const common = {
     "shop.item.victorySound.description": "Befriedigende Soundeffekte beim Abschließen von Levels und Lösen von Herausforderungen",
     "shop.item.doubleXp.name": "Doppel-XP Wochenende",
     "shop.item.doubleXp.description": "Erhalte 2x Punkte für abgeschlossene Levels für die nächsten 7 Tage",
-    "shop.item.emojiCommits.name": "Emoji Commit-Nachrichten",
+        "shop.item.emojiCommits.name": "Emoji Commit-Nachrichten",
     "shop.item.emojiCommits.description": "Füge lustige Emoji-Vorschläge zu deinen Commit-Nachrichten hinzu für bessere Git-Historie",
-    "shop.item.gitLegend.name": "Git-Legenden Abzeichen",
-    "shop.item.gitLegend.description": "Exklusives Abzeichen, das zeigt, dass du fortgeschrittenes Git gemeistert hast - schalte besondere Anerkennung frei",
+    "shop.item.proTips.name": "Pro Git-Tipps",
+    "shop.item.proTips.description": "Schalte nützliche Git-Befehle und Tricks frei - geheimes Wissen von Git-Experten",
+    "shop.item.gitLegend.name": "Git-Legende Abzeichen",
+    "shop.item.gitLegend.description": "Exklusives Abzeichen, das zeigt, dass du fortgeschrittene Git-Befehle gemeistert hast",
+
+    // Pro Tip Dialog
+    "shop.proTip.title": "Pro Git-Tipp",
+    "shop.proTip.subtitle": "Nützliches Git-Wissen um deine Skills zu verbessern",
+    "shop.proTip.another": "Weiterer Tipp",
+    "shop.showTip": "Tipp anzeigen",
 
     // Shop Categories
     "shop.category.cosmetic": "Kosmetik",

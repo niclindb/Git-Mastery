@@ -443,6 +443,7 @@ export default function LevelPage() {
                         {isLevelCompleted && (
                             <Button
                                 onClick={handleNextLevelWithStory}
+                                size="sm"
                                 className="flex items-center bg-purple-600 text-white hover:bg-purple-700">
                                 <ArrowRightIcon className="mr-1 h-4 w-4" />
                                 {t("level.nextLevel")}

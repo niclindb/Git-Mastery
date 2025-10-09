@@ -44,8 +44,8 @@ export function Terminal({
     const historyService = useMemo(() => new HistoryService(), []);
 
     const autocompleteService = useMemo(
-        () => new AutocompleteService(commandProcessor, fileSystem),
-        [commandProcessor, fileSystem],
+        () => new AutocompleteService(commandProcessor, fileSystem, gitRepository),
+        [commandProcessor, fileSystem, gitRepository],
     );
 
     const outputFormatter = useMemo(() => new OutputFormatterService(terminalOutput), [terminalOutput]);

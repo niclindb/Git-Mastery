@@ -84,8 +84,16 @@ const common = {
     "shop.item.doubleXp.description": "Get 2x points for completing levels for the next 7 days",
     "shop.item.emojiCommits.name": "Emoji Commit Messages",
     "shop.item.emojiCommits.description": "Add fun emoji suggestions to your commit messages for better git history",
+    "shop.item.proTips.name": "Pro Git Tips",
+    "shop.item.proTips.description": "Unlock useful Git commands and tricks - hidden knowledge from Git experts",
     "shop.item.gitLegend.name": "Git Legend Badge",
     "shop.item.gitLegend.description": "Exclusive badge showing you've mastered advanced Git - unlock special recognition",
+
+    // Pro Tip Dialog
+    "shop.proTip.title": "Pro Git Tip",
+    "shop.proTip.subtitle": "Useful Git knowledge to level up your skills",
+    "shop.proTip.another": "Another Tip",
+    "shop.showTip": "Show Tip",
 
     // Shop Categories
     "shop.category.cosmetic": "Cosmetic",

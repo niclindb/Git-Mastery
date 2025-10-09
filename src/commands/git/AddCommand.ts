@@ -26,6 +26,7 @@ export class AddCommand implements Command {
             // Get all files in the current directory recursively
             const allFiles = getAllFiles(fileSystem, context.currentDirectory);
             const stagedFiles = [];
+            const gitStatus = gitRepository.getStatus();
 
             // Mark appropriate files as staged
             for (const file of allFiles) {
@@ -37,9 +38,12 @@ export class AddCommand implements Command {
                 // Normalize path for consistency - remove leading slash
                 const normalizedPath = file.startsWith("/") ? file.substring(1) : file;
 
-                // Add file to staging
-                gitRepository.addFile(normalizedPath);
-                stagedFiles.push(normalizedPath);
+                // Only stage files that have changes (modified, untracked, or deleted)
+                const fileStatus = gitStatus[normalizedPath];
+                if (fileStatus === "modified" || fileStatus === "untracked" || fileStatus === "deleted") {
+                    gitRepository.addFile(normalizedPath);
+                    stagedFiles.push(normalizedPath);
+                }
             }
 
             if (stagedFiles.length === 0) {

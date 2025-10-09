@@ -243,6 +243,72 @@ export class GitRepository {
         return currentBranchState.commits.filter(id => !this.pushedCommits.has(id)).length;
     }
 
+    public getLastCommit(): { id: string; message: string; timestamp: Date; files: string[] } | null {
+        const currentBranchState = this.branchStates[this.currentBranch];
+        if (!currentBranchState || currentBranchState.commits.length === 0) return null;
+
+        const lastCommitId = currentBranchState.commits[currentBranchState.commits.length - 1];
+        if (!lastCommitId) return null;
+
+        const commitData = this.commits[lastCommitId];
+        if (!commitData) return null;
+
+        return {
+            id: lastCommitId,
+            ...commitData,
+        };
+    }
+
+    public amendLastCommit(newMessage?: string): string | null {
+        const currentBranchState = this.branchStates[this.currentBranch];
+        if (!currentBranchState || currentBranchState.commits.length === 0) {
+            return null;
+        }
+
+        const lastCommitId = currentBranchState.commits[currentBranchState.commits.length - 1];
+        if (!lastCommitId || !this.commits[lastCommitId]) {
+            return null;
+        }
+
+        // Get currently staged files
+        const stagedFiles = Object.entries(this.status)
+            .filter(([_, status]) => status === "staged")
+            .map(([file]) => file);
+
+        // Update the commit message if provided
+        if (newMessage) {
+            this.commits[lastCommitId].message = newMessage;
+        }
+
+        // If there are staged files, add them to the amended commit
+        if (stagedFiles.length > 0) {
+            // Add staged files to the commit
+            const existingFiles = new Set(this.commits[lastCommitId].files);
+
+            for (const file of stagedFiles) {
+                if (!existingFiles.has(file)) {
+                    this.commits[lastCommitId].files.push(file);
+                }
+
+                // Update status - move staged files to committed
+                this.status[file] = "committed";
+                currentBranchState.status[file] = "committed";
+
+                // Save file content to branch state
+                const content = this.fileSystem.getFileContents(file);
+                if (content !== null) {
+                    currentBranchState.files[file] = content;
+                    currentBranchState.workingDirectory[file] = content;
+                }
+            }
+        }
+
+        // Update timestamp
+        this.commits[lastCommitId].timestamp = new Date();
+
+        return lastCommitId;
+    }
+
     public createBranch(name: string): boolean {
         if (!this.initialized || this.branches.includes(name)) return false;
 
@@ -251,11 +317,22 @@ export class GitRepository {
         // Initialize new branch state as copy of current branch
         const currentBranchState = this.branchStates[this.currentBranch];
         if (currentBranchState) {
+            // Get current working directory from file system (not from cached state)
+            // This ensures modified files are included in the new branch
+            const currentWorkingDir: Record<string, string> = {};
+            this.getAllFilesFromFileSystem().forEach(filePath => {
+                const content = this.fileSystem.getFileContents(filePath);
+                if (content !== null) {
+                    const normalizedPath = filePath.startsWith("/") ? filePath.substring(1) : filePath;
+                    currentWorkingDir[normalizedPath] = content;
+                }
+            });
+
             this.branchStates[name] = {
                 files: { ...currentBranchState.files },
                 status: { ...currentBranchState.status },
                 commits: [...currentBranchState.commits],
-                workingDirectory: { ...currentBranchState.workingDirectory },
+                workingDirectory: currentWorkingDir, // Use current file system state
             };
         } else {
             // Fallback if current branch state doesn't exist
@@ -454,11 +531,140 @@ export class GitRepository {
         });
     }
 
-    public merge(branch: string): boolean {
+    public merge(branch: string): {
+        success: boolean;
+        isFastForward: boolean;
+        filesChanged: string[];
+        conflictFiles?: string[];
+        mergeCommitId?: string;
+    } {
         if (!this.initialized || !this.branches.includes(branch) || branch === this.currentBranch) {
+            return { success: false, isFastForward: false, filesChanged: [] };
+        }
+
+        const currentBranchState = this.branchStates[this.currentBranch];
+        const targetBranchState = this.branchStates[branch];
+
+        if (!currentBranchState || !targetBranchState) {
+            return { success: false, isFastForward: false, filesChanged: [] };
+        }
+
+        // Check if target branch is already merged (up to date)
+        const targetCommits = new Set(targetBranchState.commits);
+        const currentCommits = new Set(currentBranchState.commits);
+
+        let hasNewCommits = false;
+        for (const commit of targetCommits) {
+            if (!currentCommits.has(commit)) {
+                hasNewCommits = true;
+                break;
+            }
+        }
+
+        if (!hasNewCommits) {
+            // Already up to date
+            return { success: true, isFastForward: false, filesChanged: [] };
+        }
+
+        // Check if we can do a fast-forward merge
+        // Fast-forward is possible if current branch is an ancestor of target branch
+        const canFastForward = this.isAncestor(currentBranchState.commits, targetBranchState.commits);
+
+        const filesChanged: string[] = [];
+
+        if (canFastForward) {
+            // Fast-forward merge: just update current branch to point to target branch
+            currentBranchState.commits = [...targetBranchState.commits];
+            currentBranchState.files = { ...targetBranchState.files };
+
+            // Update working directory with target branch files
+            Object.entries(targetBranchState.files).forEach(([filePath, content]) => {
+                const fullPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
+                this.fileSystem.writeFile(fullPath, content);
+                filesChanged.push(filePath);
+            });
+
+            // Clear status after fast-forward
+            currentBranchState.status = {};
+            this.status = {};
+
+            return { success: true, isFastForward: true, filesChanged };
+        }
+
+        // Regular merge (create merge commit)
+        // Merge target branch files into current branch
+        Object.entries(targetBranchState.files).forEach(([filePath, content]) => {
+            const fullPath = filePath.startsWith("/") ? filePath : `/${filePath}`;
+
+            // Check if file exists in current branch with different content
+            const currentContent = currentBranchState.files[filePath];
+
+            if (currentContent === undefined) {
+                // New file from target branch
+                currentBranchState.files[filePath] = content;
+                this.fileSystem.writeFile(fullPath, content);
+                filesChanged.push(filePath);
+            } else if (currentContent !== content) {
+                // File exists but differs - take target version (simplified, no conflict detection)
+                currentBranchState.files[filePath] = content;
+                this.fileSystem.writeFile(fullPath, content);
+                filesChanged.push(filePath);
+            }
+        });
+
+        // Merge commits from target branch
+        targetBranchState.commits.forEach(commitId => {
+            if (!currentCommits.has(commitId)) {
+                currentBranchState.commits.push(commitId);
+            }
+        });
+
+        // Create a merge commit
+        const mergeCommitId = this.generateCommitId();
+        const mergeCommitMessage = `Merge branch '${branch}' into ${this.currentBranch}`;
+
+        this.commits[mergeCommitId] = {
+            message: mergeCommitMessage,
+            timestamp: new Date(),
+            files: filesChanged,
+        };
+
+        currentBranchState.commits.push(mergeCommitId);
+
+        // Update working directory
+        currentBranchState.workingDirectory = { ...currentBranchState.files };
+
+        // Clear status after merge
+        currentBranchState.status = {};
+        this.status = {};
+
+        return {
+            success: true,
+            isFastForward: false,
+            filesChanged,
+            mergeCommitId
+        };
+    }
+
+    private isAncestor(currentCommits: string[], targetCommits: string[]): boolean {
+        // Check if all commits in current branch exist in target branch
+        // AND target has more commits
+        if (targetCommits.length <= currentCommits.length) {
             return false;
         }
+
+        // Check if current commits are a prefix of target commits
+        for (let i = 0; i < currentCommits.length; i++) {
+            if (currentCommits[i] !== targetCommits[i]) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    private generateCommitId(): string {
+        return Math.random().toString(16).substring(2, 9);
     }
 
     public getCurrentBranch(): string {
@@ -671,10 +877,6 @@ export class GitRepository {
         }
 
         return true;
-    }
-
-    private generateCommitId(): string {
-        return Math.random().toString(16).substring(2, 10);
     }
 
     public reset(): void {

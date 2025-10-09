@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "~/components/ui/dialog";
-import { ShoppingCart, Star, Zap, Trophy, Coins, Sparkles, Gamepad2 } from "lucide-react";
+import { ShoppingCart, Star, Zap, Trophy, Coins, Sparkles, Gamepad2, Lightbulb } from "lucide-react";
 import { useGameContext } from "~/contexts/GameContext";
 import { useLanguage } from "~/contexts/LanguageContext";
+import { getRandomGitTip } from "~/lib/ProGitTips";
 
 interface ShopItem {
     id: string;
@@ -29,6 +30,8 @@ export function Shop({ isOpen, onClose }: ShopProps) {
 
     // State für force re-render nach Käufen
     const [, forceUpdate] = useState({});
+    const [showProTip, setShowProTip] = useState(false);
+    const [currentTip, setCurrentTip] = useState("");
 
     // Force re-render when dialog opens to show latest progress
     useEffect(() => {
@@ -106,6 +109,15 @@ export function Shop({ isOpen, onClose }: ShopProps) {
             rarity: "common",
         },
         {
+            id: "pro-tips",
+            name: t("shop.item.proTips.name"),
+            description: t("shop.item.proTips.description"),
+            price: 60,
+            icon: <Lightbulb className="h-6 w-6" />,
+            category: "utility",
+            rarity: "rare",
+        },
+        {
             id: "git-legend",
             name: t("shop.item.gitLegend.name"),
             description: t("shop.item.gitLegend.description"),
@@ -126,6 +138,12 @@ export function Shop({ isOpen, onClose }: ShopProps) {
                 if (item.id === "double-xp") {
                     progressManager.activateDoubleXp();
                     console.log("Double XP activated for 7 days!");
+                }
+
+                // Handle pro-tips item
+                if (item.id === "pro-tips") {
+                    setCurrentTip(getRandomGitTip());
+                    setShowProTip(true);
                 }
 
                 // Force component re-render to show updated state
@@ -164,98 +182,153 @@ export function Shop({ isOpen, onClose }: ShopProps) {
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="mx-2 flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-4xl flex-col overflow-hidden border-purple-900/20 bg-[#1a1625] text-purple-100 sm:mx-6 sm:w-[calc(100vw-3rem)] md:mx-0 md:w-full">
-                <DialogHeader className="flex-shrink-0">
-                    <DialogTitle className="flex items-center text-xl text-white sm:text-2xl">
-                        <ShoppingCart className="mr-2 h-5 w-5 text-purple-400 sm:h-6 sm:w-6" />
-                        {t("shop.title")}
-                    </DialogTitle>
-                    <DialogDescription className="text-sm text-purple-300 sm:text-base">
-                        {t("shop.subtitle")}
-                    </DialogDescription>
-                    <div className="flex items-center space-x-2 text-base font-semibold text-yellow-400 sm:text-lg">
-                        <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                        <span className="text-sm sm:text-base">
-                            {t("shop.balance")}: {playerPoints} {t("progress.points")}
-                        </span>
-                    </div>
-                </DialogHeader>
+        <>
+            <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent className="mx-2 flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-4xl flex-col overflow-hidden border-purple-900/20 bg-[#1a1625] text-purple-100 sm:mx-6 sm:w-[calc(100vw-3rem)] md:mx-0 md:w-full">
+                    <DialogHeader className="flex-shrink-0">
+                        <DialogTitle className="flex items-center text-xl text-white sm:text-2xl">
+                            <ShoppingCart className="mr-2 h-5 w-5 text-purple-400 sm:h-6 sm:w-6" />
+                            {t("shop.title")}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-purple-300 sm:text-base">
+                            {t("shop.subtitle")}
+                        </DialogDescription>
+                        <div className="flex items-center space-x-2 text-base font-semibold text-yellow-400 sm:text-lg">
+                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="text-sm sm:text-base">
+                                {t("shop.balance")}: {playerPoints} {t("progress.points")}
+                            </span>
+                        </div>
+                    </DialogHeader>
 
-                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2">
-                    <div className="mt-6 grid max-w-full grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
-                        {shopItems.map(item => {
-                            const isPurchased = purchasedItems.includes(item.id);
-                            const canAfford = playerPoints >= item.price;
+                    <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2">
+                        <div className="mt-6 grid max-w-full grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
+                            {shopItems.map(item => {
+                                const isPurchased = purchasedItems.includes(item.id);
+                                const canAfford = playerPoints >= item.price;
 
-                            return (
-                                <Card
-                                    key={item.id}
-                                    className={`border transition-all duration-300 ${getRarityColor(item.rarity)} ${getRarityBg(item.rarity)} ${
-                                        isPurchased ? "opacity-60" : "hover:shadow-lg hover:shadow-purple-500/20"
-                                    } min-w-0`}>
-                                    <CardHeader className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                                <div className={`${getRarityColor(item.rarity).split(" ")[0]}`}>
-                                                    {item.icon}
+                                return (
+                                    <Card
+                                        key={item.id}
+                                        className={`border transition-all duration-300 ${getRarityColor(item.rarity)} ${getRarityBg(item.rarity)} ${
+                                            isPurchased ? "opacity-60" : "hover:shadow-lg hover:shadow-purple-500/20"
+                                        } min-w-0`}>
+                                        <CardHeader className="p-4 sm:p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-2">
+                                                    <div className={`${getRarityColor(item.rarity).split(" ")[0]}`}>
+                                                        {item.icon}
+                                                    </div>
+                                                    <CardTitle
+                                                        className={`text-base ${getRarityColor(item.rarity).split(" ")[0]} sm:text-lg`}>
+                                                        {item.name}
+                                                    </CardTitle>
                                                 </div>
-                                                <CardTitle
-                                                    className={`text-base ${getRarityColor(item.rarity).split(" ")[0]} sm:text-lg`}>
-                                                    {item.name}
-                                                </CardTitle>
+                                                <span
+                                                    className={`rounded-full px-2 py-1 text-xs capitalize ${getRarityColor(item.rarity)}`}>
+                                                    {t(`shop.rarity.${item.rarity}`)}
+                                                </span>
                                             </div>
-                                            <span
-                                                className={`rounded-full px-2 py-1 text-xs capitalize ${getRarityColor(item.rarity)}`}>
-                                                {t(`shop.rarity.${item.rarity}`)}
-                                            </span>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3 overflow-hidden p-4 pt-0 sm:space-y-4 sm:p-6 sm:pt-0">
-                                        <p className="break-words text-xs text-purple-200 sm:text-sm">
-                                            {item.description}
-                                        </p>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3 overflow-hidden p-4 pt-0 sm:space-y-4 sm:p-6 sm:pt-0">
+                                            <p className="break-words text-xs text-purple-200 sm:text-sm">
+                                                {item.description}
+                                            </p>
 
-                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="flex items-center space-x-1 text-yellow-400">
-                                                <Coins className="h-4 w-4" />
-                                                <span className="text-sm font-semibold sm:text-base">{item.price}</span>
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex items-center space-x-1 text-yellow-400">
+                                                    <Coins className="h-4 w-4" />
+                                                    <span className="text-sm font-semibold sm:text-base">
+                                                        {item.price}
+                                                    </span>
+                                                </div>
+
+                                                {item.id === "pro-tips" && isPurchased ? (
+                                                    <Button
+                                                        onClick={() => {
+                                                            setCurrentTip(getRandomGitTip());
+                                                            setShowProTip(true);
+                                                        }}
+                                                        size="sm"
+                                                        className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto">
+                                                        <Lightbulb className="mr-2 h-4 w-4" />
+                                                        {t("shop.showTip")}
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => handlePurchase(item)}
+                                                        disabled={isPurchased || !canAfford}
+                                                        size="sm"
+                                                        className={`w-full sm:w-auto ${
+                                                            isPurchased
+                                                                ? "cursor-not-allowed bg-green-600 text-white"
+                                                                : !canAfford
+                                                                  ? "cursor-not-allowed bg-gray-600 text-gray-300"
+                                                                  : "bg-purple-600 text-white hover:bg-purple-700"
+                                                        }`}>
+                                                        {isPurchased
+                                                            ? t("shop.purchased")
+                                                            : !canAfford
+                                                              ? t("shop.insufficient")
+                                                              : t("shop.buy")}
+                                                    </Button>
+                                                )}
                                             </div>
-
-                                            <Button
-                                                onClick={() => handlePurchase(item)}
-                                                disabled={isPurchased || !canAfford}
-                                                size="sm"
-                                                className={`w-full sm:w-auto ${
-                                                    isPurchased
-                                                        ? "cursor-not-allowed bg-green-600 text-white"
-                                                        : !canAfford
-                                                          ? "cursor-not-allowed bg-gray-600 text-gray-300"
-                                                          : "bg-purple-600 text-white hover:bg-purple-700"
-                                                }`}>
-                                                {isPurchased
-                                                    ? t("shop.purchased")
-                                                    : !canAfford
-                                                      ? t("shop.insufficient")
-                                                      : t("shop.buy")}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
 
-                <div className="mt-6 flex flex-shrink-0 justify-center">
-                    <Button
-                        onClick={onClose}
-                        variant="outline"
-                        className="border-purple-700 text-purple-300 hover:bg-purple-900/50">
-                        {t("minigame.close")}
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+                    <div className="mt-6 flex flex-shrink-0 justify-center">
+                        <Button
+                            onClick={onClose}
+                            variant="outline"
+                            className="border-purple-700 text-purple-300 hover:bg-purple-900/50">
+                            {t("minigame.close")}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Pro Tip Dialog */}
+            <Dialog open={showProTip} onOpenChange={setShowProTip}>
+                <DialogContent className="max-w-md border-blue-600 bg-gradient-to-br from-blue-950 to-purple-950">
+                    <DialogHeader>
+                        <div className="flex items-center space-x-3">
+                            <Lightbulb className="h-6 w-6 text-yellow-400" />
+                            <DialogTitle className="text-2xl font-bold text-blue-300">
+                                {t("shop.proTip.title")}
+                            </DialogTitle>
+                        </div>
+                        <DialogDescription className="text-purple-200">{t("shop.proTip.subtitle")}</DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div className="rounded-lg border border-blue-700 bg-blue-950/50 p-4">
+                            <p className="text-lg leading-relaxed text-purple-100">{currentTip}</p>
+                        </div>
+
+                        <div className="flex justify-between gap-2">
+                            <Button
+                                onClick={() => {
+                                    setCurrentTip(getRandomGitTip());
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700">
+                                <Lightbulb className="mr-2 h-4 w-4" />
+                                {t("shop.proTip.another")}
+                            </Button>
+                            <Button
+                                onClick={() => setShowProTip(false)}
+                                variant="outline"
+                                className="border-purple-700 text-purple-300 hover:bg-purple-900/50">
+                                {t("minigame.close")}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

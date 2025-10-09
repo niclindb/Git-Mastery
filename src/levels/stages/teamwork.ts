@@ -12,7 +12,7 @@ const teamworkLevel1 = createLevel({
     name: "Team Collaboration Basics",
     description: "Learn how to work effectively with a team using Git",
     objectives: [
-        "Clone a team repository",
+        "Get the latest code from the team repository",
         "Set up your local development environment",
         "Make your first team contribution",
         "Push changes to shared repository"
@@ -26,6 +26,7 @@ const teamworkLevel1 = createLevel({
     requirements: [
         createRequirement({
             command: "git pull origin main",
+            alternativeCommands: ["git fetch origin main && git merge origin/main"],
             description: "Pull the latest changes from the team repository",
             successMessage: "Latest changes pulled successfully!"
         }),
