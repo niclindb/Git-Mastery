@@ -30,7 +30,9 @@ const teamworkLevel1 = createLevel({
             successMessage: "Latest changes pulled successfully!"
         }),
         createRequirement({
-            command: "git checkout -b feature/team-profile",
+            command: "git switch -c",
+            alternativeCommands: ["git checkout -b"],
+            requiresArgs: ["any"],
             description: "Create your feature branch for team profile",
             successMessage: "Feature branch created!"
         }),
@@ -57,9 +59,10 @@ Your team lead, Alex, walks you through your first day:
 
 Your mission:
 1. Get the latest code from the team repository with \`git pull origin main\`
-2. Create your feature branch with \`git checkout -b feature/team-profile\`
-3. Add your developer profile
-4. Commit and push your changes with \`git commit -m "Add my profile"\`
+2. Create your feature branch: \`git switch -c feature/team-profile\`
+3. Add your developer profile to the team page
+4. Stage changes: \`git add .\`
+5. Commit your changes: \`git commit -m "Add my profile"\`
 
 This is real-world team development. Let's make your first contribution!`,
         realWorldContext: "Team collaboration is the heart of software development. Learning to work with shared repositories is essential for any developer.",
@@ -198,11 +201,14 @@ const teamworkLevel3 = createLevel({
         "Test thoroughly before requesting review"
     ],
     requirements: [
-        createRequirement({
-            command: "git checkout -b feature/code-review-demo",
+        {
+            id: "create-review-branch",
+            command: "git switch -c",
+            alternativeCommands: ["git checkout -b"],
+            requiresArgs: ["any"],
             description: "Create a branch for code review demonstration",
             successMessage: "Review branch created!"
-        }),
+        },
         createRequirement({
             command: "git add .",
             description: "Stage your code for review",
@@ -232,11 +238,13 @@ Your team lead Alex explains the process:
 You've just finished implementing the password reset feature. It's working perfectly in your local tests, but now it needs to go through the team's review process.
 
 The code review process:
-1. Create a focused feature branch with \`git checkout -b feature/password-reset\`
+1. Create a focused feature branch: \`git switch -c feature/password-reset\`
 2. Write clean, well-documented code
-3. Push to origin with \`git push origin feature/password-reset\` and create a pull request
-4. Address feedback from reviewers
-5. Merge once approved
+3. Stage and commit your changes
+4. Push to origin: \`git push origin feature/password-reset\`
+5. Create a pull request for team review
+6. Address feedback from reviewers
+7. Merge once approved
 
 This is how professional development teams ensure code quality and share knowledge. Your code review skills are just as important as your coding skills!`,
         realWorldContext: "Code reviews are standard practice in professional development, improving code quality and fostering team knowledge sharing.",

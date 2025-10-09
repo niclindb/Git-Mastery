@@ -244,11 +244,14 @@ const masteryLevel3 = createLevel({
         "Document your decisions for the team"
     ],
     requirements: [
-        createRequirement({
-            command: "git checkout -b emergency/rollback-plan",
+        {
+            id: "create-emergency-branch",
+            command: "git switch -c",
+            alternativeCommands: ["git checkout -b"],
+            requiresArgs: ["any"],
             description: "Create an emergency rollback branch",
             successMessage: "Emergency procedures initiated!"
-        }),
+        },
         createRequirement({
             command: "git cherry-pick",
             description: "Cherry-pick critical fixes",

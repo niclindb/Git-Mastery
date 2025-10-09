@@ -80,17 +80,24 @@ export class BranchCommand implements Command {
 
         // Handle deletion
         if (isDelete || isForceDelete) {
-            if (positionalArgs.length === 0) {
+            // Branch name can be either as flag value or positional arg
+            const branchName =
+                (typeof args.flags.d === 'string' ? args.flags.d : undefined) ||
+                (typeof args.flags.D === 'string' ? args.flags.D : undefined) ||
+                positionalArgs[0];
+
+            if (!branchName) {
+                const flag = isForceDelete ? '-D' : '-d';
                 return {
                     action: "delete",
                     isForce,
-                    error: "fatal: branch name required",
+                    error: `error: branch name required\nusage: git branch ${flag} <branchname>`,
                 };
             }
 
             return {
                 action: "delete",
-                branchName: positionalArgs[0],
+                branchName,
                 isForce,
             };
         }

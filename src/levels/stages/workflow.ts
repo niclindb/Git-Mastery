@@ -18,7 +18,6 @@ const workflowLevel1 = createLevel({
     ],
     hints: [
         "Start by creating a feature branch: 'git switch -c feature/user-auth'",
-        "You can also use 'git checkout -b feature/user-auth' - both work!",
         "Modify the auth.js file, then use 'git add' to stage your changes",
         "Commit with: 'git commit'",
         "Push to remote: 'git push origin feature/user-auth'",
@@ -31,7 +30,7 @@ const workflowLevel1 = createLevel({
             id: "create-feature-branch",
             command: "git switch -c",
             alternativeCommands: ["git checkout -b"],
-            description: "Create a new feature branch (use 'git switch -c <branch>' OR 'git checkout -b <branch>')",
+            description: "Create a new feature branch with 'git switch -c <branch>'",
             successMessage: "Feature branch created successfully!"
         },
         {
@@ -42,7 +41,7 @@ const workflowLevel1 = createLevel({
         },
         {
             id: "commit-changes",
-            command: "git commit -m",
+            command: "git commit",
             requiresArgs: ["any"],
             description: "Commit your changes with a descriptive message",
             successMessage: "Changes committed!"
@@ -59,7 +58,7 @@ const workflowLevel1 = createLevel({
             command: "git switch",
             alternativeCommands: ["git checkout"],
             requiresArgs: ["main"],
-            description: "Switch back to main branch (use 'git switch main' OR 'git checkout main')",
+            description: "Switch back to main branch with 'git switch main'",
             successMessage: "Switched to main branch!"
         },
         {
@@ -81,19 +80,12 @@ A feature branch is a separate branch where you develop a new feature in isolati
 - Get code reviewed before merging
 - Easily abandon or modify work without impacting others
 
-**Modern Best Practice:**
-You can use either command to create a branch:
-- \`git switch -c feature/user-auth\` (modern, recommended)
-- \`git checkout -b feature/user-auth\` (traditional, also works)
-
-Both do the exact same thing! We'll accept either command in this level.
-
 **The Complete Workflow:**
-1. Create a feature branch from main
+1. Create a feature branch from main: \`git switch -c feature/user-auth\`
 2. Make changes to files and stage them with \`git add\`
 3. Commit changes with descriptive messages
 4. Push your branch to remote: \`git push origin feature/user-auth\`
-5. Switch back to main: \`git switch main\` (or \`git checkout main\`)
+5. Switch back to main: \`git switch main\`
 6. Merge the feature: \`git merge feature/user-auth\`
 
 **What are Pull Requests (PRs)?**
@@ -167,8 +159,9 @@ const workflowLevel2 = createLevel({
     requirements: [
         {
             id: "create-hotfix-branch",
-            command: "git checkout -b",
-            requiresArgs: ["hotfix/security-patch"],
+            command: "git switch -c",
+            alternativeCommands: ["git checkout -b"],
+            requiresArgs: ["any"],
             description: "Create a hotfix branch for the security issue",
             successMessage: "Hotfix branch created!"
         },
@@ -180,7 +173,7 @@ const workflowLevel2 = createLevel({
         },
         {
             id: "commit-fixes",
-            command: "git commit -m",
+            command: "git commit",
             requiresArgs: ["any"],
             description: "Commit the critical security patch",
             successMessage: "Security patch committed!"
@@ -188,6 +181,7 @@ const workflowLevel2 = createLevel({
         {
             id: "switch-to-main",
             command: "git switch",
+            alternativeCommands: ["git checkout"],
             requiresArgs: ["main"],
             description: "Switch back to main branch",
             successMessage: "Switched to main branch!"
@@ -195,7 +189,7 @@ const workflowLevel2 = createLevel({
         {
             id: "merge-hotfix",
             command: "git merge",
-            requiresArgs: ["hotfix/security-patch"],
+            requiresArgs: ["any"],
             description: "Merge the hotfix into main",
             successMessage: "Hotfix merged successfully!"
         }
@@ -207,11 +201,11 @@ const workflowLevel2 = createLevel({
 At 2:47 AM, your phone buzzes with alerts. The payment system is failing, and customers can't complete purchases. The bug tracker shows a critical security vulnerability was introduced in the latest release.
 
 As the on-call developer, you need to:
-1. Immediately create a hotfix branch with \`git checkout -b hotfix/security-patch\`
-2. Fix the critical security issue
-3. Deploy the fix ASAP
-4. Merge back to both main and develop using \`git merge hotfix/security-patch\`
-5. Tag the emergency release with \`git tag v1.0.1\`
+1. Immediately create a hotfix branch: \`git switch -c hotfix/security-patch\`
+2. Fix the critical security issue in the code
+3. Stage and commit your fixes
+4. Switch back to main: \`git switch main\`
+5. Merge the hotfix: \`git merge hotfix/security-patch\`
 
 Every minute costs the company thousands. This is what separates junior developers from senior ones - grace under pressure and knowing the right Git workflows.
 
@@ -243,52 +237,63 @@ const workflowLevel3 = createLevel({
     name: "Git Flow Mastery",
     description: "Master the complete Git Flow workflow with release branches",
     objectives: [
-        "Create and manage release branches",
-        "Handle multiple feature branches",
-        "Perform release preparation",
-        "Master the complete Git Flow cycle"
+        "Create a release branch from develop",
+        "Prepare and commit release changes",
+        "Merge release to main",
+        "Tag the release version"
     ],
     hints: [
-        "Release branches are created from develop",
-        "Only bug fixes go into release branches",
-        "Release branches merge to both main and develop",
-        "Use semantic versioning for releases"
+        "Start on develop and create release branch: 'git switch -c release/2.0.0'",
+        "Make final adjustments and commit your release preparation",
+        "Switch to main: 'git switch main'",
+        "Merge the release: 'git merge release/2.0.0'",
+        "Tag the release: 'git tag v2.0.0'",
+        "In real projects, you'd also merge back to develop"
     ],
     requirementLogic: "all",
     requirements: [
         {
             id: "create-release-branch",
-            command: "git checkout -b",
-            requiresArgs: ["release/2.0.0"],
-            description: "Create a release branch for version 2.0.0",
+            command: "git switch -c",
+            alternativeCommands: ["git checkout -b"],
+            requiresArgs: ["any"],
+            description: "Create a release branch (e.g., 'release/2.0.0')",
             successMessage: "Release branch created!"
         },
         {
             id: "stage-release-changes",
             command: "git add",
-            description: "Stage release preparation changes",
+            description: "Stage your release preparation changes",
             successMessage: "Release changes staged!"
         },
         {
             id: "commit-release",
-            command: "git commit -m",
+            command: "git commit",
             requiresArgs: ["any"],
-            description: "Commit release preparation",
+            description: "Commit release preparation with a clear message",
             successMessage: "Release preparation committed!"
         },
         {
             id: "switch-to-main-for-release",
-            command: "git checkout",
+            command: "git switch",
+            alternativeCommands: ["git checkout"],
             requiresArgs: ["main"],
-            description: "Switch to main branch for release",
+            description: "Switch to main branch to prepare for release merge",
             successMessage: "Switched to main!"
         },
         {
             id: "merge-release",
             command: "git merge",
-            requiresArgs: ["release/2.0.0"],
-            description: "Merge release into main",
+            requiresArgs: ["any"],
+            description: "Merge your release branch into main",
             successMessage: "Release merged to main!"
+        },
+        {
+            id: "tag-release",
+            command: "git tag",
+            requiresArgs: ["any"],
+            description: "Tag the release with version number (e.g., 'v2.0.0')",
+            successMessage: "Release tagged! Version 2.0.0 is now live in production!"
         }
     ],
     story: createStory({
@@ -301,22 +306,40 @@ Your job is to orchestrate the release of version 2.0, which includes:
 - Performance improvements
 - Updated documentation
 
-You must:
-1. Create a release branch from develop with \`git checkout -b release/2.0.0\`
-2. Perform final testing and bug fixes
-3. Prepare release notes
-4. Merge to main with \`git merge release/2.0.0\` and tag the release with \`git tag v2.0.0\`
-5. Merge back to develop
+**The Release Workflow:**
+
+1. **Create Release Branch**: Start from develop and create a release branch
+   \`git switch -c release/2.0.0\`
+
+2. **Final Preparations**: Update version numbers, CHANGELOG, etc.
+   - Edit files as needed
+   - \`git add .\`
+   - \`git commit -m "Prepare release 2.0.0"\`
+
+3. **Merge to Main**: Deploy to production
+   - \`git switch main\`
+   - \`git merge release/2.0.0\`
+
+4. **Tag the Release**: Mark this version in history
+   \`git tag v2.0.0\`
+
+This creates a permanent marker for this release. In real projects, you'd also:
+- Merge back to develop to keep it in sync
+- Delete the release branch
+- Push everything to remote
+- Deploy to production
 
 This is enterprise-level Git management. Welcome to the big leagues!`,
-        realWorldContext: "Release management is crucial for coordinating team efforts and ensuring stable software deployments.",
-        taskIntroduction: "Learn to manage complex release workflows with multiple teams and features."
+        realWorldContext: "Release branches are used in Git Flow to prepare production releases. They allow final bug fixes and documentation updates without blocking ongoing development. The release is tagged for easy reference and rollback if needed.",
+        taskIntroduction: "Learn the professional release workflow: branch, prepare, merge, and tag. This is how teams ship stable software to production."
     }),
     initialState: createInitialState({
         files: [
             createFileStructure("/CHANGELOG.md", "# Changelog\n\n## v1.9.0\n- Initial release"),
-            createFileStructure("/src/features/feature1.js", "// New feature 1"),
-            createFileStructure("/src/features/feature2.js", "// New feature 2")
+            createFileStructure("/package.json", '{\n  "name": "gitflow-app",\n  "version": "1.9.0",\n  "description": "Enterprise application"\n}'),
+            createFileStructure("/src/features/feature1.js", "// New feature 1\nfunction newFeature1() {\n  return 'Feature 1';\n}"),
+            createFileStructure("/src/features/feature2.js", "// New feature 2\nfunction newFeature2() {\n  return 'Feature 2';\n}"),
+            createFileStructure("/README.md", "# GitFlow App v1.9.0\n\nEnterprise Git workflow demonstration.")
         ],
         git: createGitState({
             initialized: true,
@@ -324,8 +347,21 @@ This is enterprise-level Git management. Welcome to the big leagues!`,
             branches: ["main", "develop", "feature/new-ui", "feature/api-integration"],
             commits: [
                 {
-                    message: "Prepare for v2.0 release",
-                    files: ["/CHANGELOG.md", "/src/features/feature1.js"]
+                    message: "Add new features to develop",
+                    files: ["/CHANGELOG.md", "/src/features/feature1.js", "/src/features/feature2.js", "/package.json", "/README.md"],
+                    branch: "develop"
+                }
+            ],
+            fileChanges: [
+                {
+                    path: "/CHANGELOG.md",
+                    status: "modified",
+                    content: "# Changelog\n\n## v2.0.0\n- New UI improvements\n- API integration complete\n- Performance optimizations\n\n## v1.9.0\n- Initial release"
+                },
+                {
+                    path: "/package.json",
+                    status: "modified",
+                    content: '{\n  "name": "gitflow-app",\n  "version": "2.0.0",\n  "description": "Enterprise application with major updates"\n}'
                 }
             ]
         })

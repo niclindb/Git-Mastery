@@ -104,17 +104,20 @@ export class LevelManager {
             // Create commits if specified
             if (gitState.commits) {
                 for (const commit of gitState.commits) {
-                    // Stage files for this commit
-                    for (const filePath of commit.files) {
-                        gitRepository.addFile(filePath);
-                    }
-
-                    // Commit the changes
-                    gitRepository.commit(commit.message);
-
-                    // Switch branch if needed for next commit
+                    // Switch branch BEFORE committing if needed
                     if (commit.branch && commit.branch !== gitRepository.getCurrentBranch()) {
                         gitRepository.checkout(commit.branch);
+                    }
+
+                    // Only commit if there's a message (empty message = just switch branch)
+                    if (commit.message) {
+                        // Stage files for this commit
+                        for (const filePath of commit.files) {
+                            gitRepository.addFile(filePath);
+                        }
+
+                        // Commit the changes
+                        gitRepository.commit(commit.message);
                     }
                 }
             }

@@ -63,14 +63,18 @@ export function createStory(params: {
 export function createRequirement(params: {
     command: string;
     requiresArgs?: string[];
+    alternativeCommands?: string[];
     description: string;
     successMessage?: string;
+    id?: string;
 }): LevelRequirement {
     return {
         command: params.command,
         requiresArgs: params.requiresArgs,
+        alternativeCommands: params.alternativeCommands,
         description: params.description,
         successMessage: params.successMessage,
+        id: params.id,
     };
 }
 
