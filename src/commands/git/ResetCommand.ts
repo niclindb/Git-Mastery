@@ -92,7 +92,6 @@ export class ResetCommand implements Command {
         commitsBack: number,
     ): string[] {
         const status = gitRepository.getStatus();
-        const currentBranch = gitRepository.getCurrentBranch();
 
         switch (mode) {
             case "hard":

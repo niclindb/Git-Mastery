@@ -136,12 +136,12 @@ export class MergeCommand implements Command {
         };
     }
 
-    private isUpToDate(currentBranch: string, targetBranch: string): boolean {
+    private isUpToDate(_currentBranch: string, _targetBranch: string): boolean {
         // Simplified check - in real Git this would check commit history
         return false; // For learning purposes, always allow merge
     }
 
-    private canFastForward(currentBranch: string, targetBranch: string): boolean {
+    private canFastForward(_currentBranch: string, _targetBranch: string): boolean {
         // Simplified check - in real Git this would check if current branch
         // is an ancestor of target branch
         return Math.random() > 0.5; // Random for variety in learning

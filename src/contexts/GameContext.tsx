@@ -9,7 +9,6 @@ import { ProgressManager } from "~/models/ProgressManager";
 import { GitRepository } from "~/models/GitRepository";
 import type { GameContextProps, DifficultyLevel } from "~/types";
 import { useLanguage } from "~/contexts/LanguageContext";
-import { getDifficultyConfig } from "~/config/difficulties";
 import { useSoundManager } from "~/lib/SoundManager";
 
 const GameContext = createContext<GameContextProps | undefined>(undefined);

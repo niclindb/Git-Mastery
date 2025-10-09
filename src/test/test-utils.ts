@@ -1,5 +1,6 @@
 import { FileSystem } from '~/models/FileSystem';
 import { GitRepository } from '~/models/GitRepository';
+import { ProgressManager } from '~/models/ProgressManager';
 import type { CommandContext } from '~/commands/base/Command';
 
 /**
@@ -8,6 +9,7 @@ import type { CommandContext } from '~/commands/base/Command';
 export function createTestContext(): CommandContext {
   const fileSystem = new FileSystem();
   const gitRepository = new GitRepository(fileSystem);
+  const progressManager = new ProgressManager();
 
   const context: CommandContext = {
     fileSystem,
@@ -16,6 +18,7 @@ export function createTestContext(): CommandContext {
     setCurrentDirectory: (dir: string) => {
       context.currentDirectory = dir;
     },
+    progressManager,
   };
 
   return context;
