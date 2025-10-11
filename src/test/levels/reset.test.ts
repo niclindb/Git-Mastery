@@ -88,7 +88,9 @@ describe("Reset Stage Levels", () => {
             levelManager.setupLevel("reset", 1, fileSystem, gitRepository);
 
             expect(fileSystem.getFileContents("/README.md")).toBeTruthy();
-            expect(fileSystem.getFileContents("/src/app.js")).toBeTruthy();
+            expect(fileSystem.getFileContents("/src/auth.js")).toBeTruthy();
+            expect(fileSystem.getFileContents("/src/api.js")).toBeTruthy();
+            expect(fileSystem.getFileContents("/config/database.js")).toBeTruthy();
         });
     });
 

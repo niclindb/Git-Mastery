@@ -142,7 +142,6 @@ const stashLevel2 = createLevel({
             id: "create-new-branch",
             command: "git switch",
             alternativeCommands: ["git checkout"],
-            requiresArgs: ["-c", "feature/new-task"],
             description: "stash.level2.requirement3.description",
             successMessage: "stash.level2.requirement3.success",
         },

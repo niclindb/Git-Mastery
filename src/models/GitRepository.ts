@@ -929,17 +929,32 @@ export class GitRepository {
         switch (mode) {
             case "hard":
                 // Reset working directory, staging area, and HEAD
-                this.clearWorkingDirectory();
+                // First, collect all files that should exist after reset
+                const targetCommitFiles = new Set<string>();
+                const targetCommit = this.commits[commitId];
+                if (targetCommit) {
+                    targetCommit.files.forEach(filePath => targetCommitFiles.add(filePath));
+                }
+
+                // Delete files that don't exist in target commit
+                Object.keys(currentBranchState.workingDirectory).forEach(filePath => {
+                    if (!targetCommitFiles.has(filePath)) {
+                        this.fileSystem.delete(`/${filePath}`);
+                        delete currentBranchState.workingDirectory[filePath];
+                        delete this.status[filePath];
+                        delete currentBranchState.status[filePath];
+                    }
+                });
+
+                // Clear all status
                 this.status = {};
                 currentBranchState.status = {};
-                currentBranchState.workingDirectory = {};
 
                 // Restore files from the target commit
-                if (this.commits[commitId]) {
-                    const commit = this.commits[commitId];
-                    commit.files.forEach(filePath => {
+                if (targetCommit) {
+                    targetCommit.files.forEach(filePath => {
                         const content = currentBranchState.files[filePath];
-                        if (content) {
+                        if (content !== undefined) {
                             this.fileSystem.writeFile(`/${filePath}`, content);
                             currentBranchState.workingDirectory[filePath] = content;
                             this.status[filePath] = "committed";
@@ -951,8 +966,30 @@ export class GitRepository {
 
             case "mixed":
                 // Reset staging area and HEAD, keep working directory
+                // Files from removed commits should appear as modified
+                removedCommits.forEach(removedCommitId => {
+                    const removedCommit = this.commits[removedCommitId];
+                    if (removedCommit) {
+                        removedCommit.files.forEach(filePath => {
+                            // Get the content of the file from the branch state
+                            const fileContent = currentBranchState.files[filePath];
+
+                            // Mark files from removed commits as modified
+                            this.status[filePath] = "modified";
+                            currentBranchState.status[filePath] = "modified";
+
+                            // Make sure the file exists in the working directory
+                            if (fileContent !== undefined) {
+                                this.fileSystem.writeFile(`/${filePath}`, fileContent);
+                                currentBranchState.workingDirectory[filePath] = fileContent;
+                            }
+                        });
+                    }
+                });
+
+                // Also unstage any currently staged files
                 Object.keys(this.status).forEach(file => {
-                    if (this.status[file] === "staged") {
+                    if (this.status[file] === "staged" || this.status[file] === "staged+modified") {
                         this.status[file] = "modified";
                         currentBranchState.status[file] = "modified";
                     }
@@ -966,10 +1003,17 @@ export class GitRepository {
                     const removedCommit = this.commits[removedCommitId];
                     if (removedCommit) {
                         removedCommit.files.forEach(filePath => {
-                            // Mark files from removed commits as staged
-                            if (this.status[filePath] !== "staged") {
-                                this.status[filePath] = "staged";
-                                currentBranchState.status[filePath] = "staged";
+                            // Get the content of the file from the branch state
+                            const fileContent = currentBranchState.files[filePath];
+
+                            // Mark files from removed commits as staged and restore content
+                            this.status[filePath] = "staged";
+                            currentBranchState.status[filePath] = "staged";
+
+                            // Make sure the file exists in the working directory
+                            if (fileContent !== undefined) {
+                                this.fileSystem.writeFile(`/${filePath}`, fileContent);
+                                currentBranchState.workingDirectory[filePath] = fileContent;
                             }
                         });
                     }

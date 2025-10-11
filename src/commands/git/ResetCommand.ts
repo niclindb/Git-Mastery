@@ -76,6 +76,11 @@ export class ResetCommand implements Command {
             if (!targetCommitId) {
                 return [`fatal: ambiguous argument '${target}': unknown revision or path not in the working tree.`];
             }
+            // Calculate how many commits back this is
+            const targetIndex = commits.indexOf(targetCommitId);
+            if (targetIndex !== -1) {
+                commitsBack = commits.length - 1 - targetIndex;
+            }
         }
 
         if (!targetCommitId) {
@@ -112,7 +117,11 @@ export class ResetCommand implements Command {
                 }
 
                 // Use the new resetToCommit method
-                gitRepository.resetToCommit(targetCommitId, "hard");
+                const hardResetSuccess = gitRepository.resetToCommit(targetCommitId, "hard");
+
+                if (!hardResetSuccess) {
+                    return [`fatal: Failed to reset to commit ${targetCommitId.substring(0, 7)}`];
+                }
 
                 if (commitsBack > 0) {
                     return [
@@ -128,7 +137,11 @@ export class ResetCommand implements Command {
 
             case "soft":
                 // Only move HEAD, keep staging area and working directory unchanged
-                gitRepository.resetToCommit(targetCommitId, "soft");
+                const softResetSuccess = gitRepository.resetToCommit(targetCommitId, "soft");
+
+                if (!softResetSuccess) {
+                    return [`fatal: Failed to reset to commit ${targetCommitId.substring(0, 7)}`];
+                }
 
                 if (commitsBack > 0) {
                     return [
@@ -155,7 +168,11 @@ export class ResetCommand implements Command {
                     }
                 }
 
-                gitRepository.resetToCommit(targetCommitId, "mixed");
+                const mixedResetSuccess = gitRepository.resetToCommit(targetCommitId, "mixed");
+
+                if (!mixedResetSuccess) {
+                    return [`fatal: Failed to reset to commit ${targetCommitId.substring(0, 7)}`];
+                }
 
                 if (commitsBack > 0) {
                     return [

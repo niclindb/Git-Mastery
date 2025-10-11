@@ -93,7 +93,7 @@ export function parseArgs(args: string[]): CommandArgs {
             const flag = arg.substring(2);
 
             // List of flags that are always boolean (never take a value)
-            const booleanFlags = ["set-upstream", "force", "all", "amend", "no-edit", "abort", "continue"];
+            const booleanFlags = ["set-upstream", "force", "all", "amend", "no-edit", "abort", "continue", "soft", "hard", "mixed", "oneline", "graph"];
 
             if (booleanFlags.includes(flag)) {
                 result.flags[flag] = true;
