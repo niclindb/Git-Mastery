@@ -434,12 +434,21 @@ export default function LevelPage() {
                         <h3 className="mb-2 font-medium text-purple-200">{t("level.objectives")}</h3>
                         <ul className="space-y-2 text-purple-300">
                             {levelData.objectives.map((objective, index) => {
-                                // Check if this objective's requirement is completed
-                                // Assuming objectives align with requirements by index
-                                const requirement = levelData.requirements[index];
-                                const isCompleted = requirement?.id
-                                    ? levelData.completedRequirements?.includes(requirement.id) || false
-                                    : false;
+                                // Check if this objective is completed
+                                // Objectives are 1-indexed (objective 1, 2, 3...)
+                                const objectiveNumber = index + 1;
+
+                                // If requirements have objectiveId, use completedObjectives
+                                // Otherwise fall back to old behavior (match by index)
+                                const hasObjectiveIds = levelData.requirements.some(
+                                    req => req.objectiveId !== undefined,
+                                );
+                                const isCompleted = hasObjectiveIds
+                                    ? levelData.completedObjectives?.includes(objectiveNumber) || false
+                                    : levelData.requirements[index]?.id
+                                      ? levelData.completedRequirements?.includes(levelData.requirements[index].id!) ||
+                                        false
+                                      : false;
 
                                 return (
                                     <li key={index} className="flex items-start space-x-2">

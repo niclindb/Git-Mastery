@@ -14,7 +14,8 @@ const workflowLevel1 = createLevel({
         "workflow.level1.objective1",
         "workflow.level1.objective2",
         "workflow.level1.objective3",
-        "workflow.level1.objective4"
+        "workflow.level1.objective4",
+        "workflow.level1.objective5",
     ],
     hints: [
         "workflow.level1.hint1",
@@ -28,19 +29,23 @@ const workflowLevel1 = createLevel({
     requirements: [
         {
             id: "create-feature-branch",
-            command: "git switch -c",
-            alternativeCommands: ["git checkout -b"],
+            objectiveId: 1,
+            command: "git switch",
+            alternativeCommands: ["git checkout"],
+            requiresArgs: ["-c"],
             description: "workflow.level1.requirement1.description",
             successMessage: "workflow.level1.requirement1.success"
         },
         {
             id: "stage-changes",
+            objectiveId: 2,
             command: "git add",
             description: "workflow.level1.requirement2.description",
             successMessage: "workflow.level1.requirement2.success"
         },
         {
             id: "commit-changes",
+            objectiveId: 2,
             command: "git commit",
             requiresArgs: ["any"],
             description: "workflow.level1.requirement3.description",
@@ -48,6 +53,7 @@ const workflowLevel1 = createLevel({
         },
         {
             id: "push-feature",
+            objectiveId: 3,
             command: "git push",
             requiresArgs: ["origin"],
             description: "workflow.level1.requirement4.description",
@@ -55,6 +61,7 @@ const workflowLevel1 = createLevel({
         },
         {
             id: "switch-to-main",
+            objectiveId: 4,
             command: "git switch",
             alternativeCommands: ["git checkout"],
             requiresArgs: ["main"],
@@ -63,6 +70,7 @@ const workflowLevel1 = createLevel({
         },
         {
             id: "merge-feature",
+            objectiveId: 5,
             command: "git merge",
             description: "workflow.level1.requirement6.description",
             successMessage: "workflow.level1.requirement6.success"

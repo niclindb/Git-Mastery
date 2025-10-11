@@ -337,6 +337,11 @@ export class LevelManager {
             level.completedRequirements = [];
         }
 
+        // Initialize completed objectives array if not present
+        if (!level.completedObjectives) {
+            level.completedObjectives = [];
+        }
+
         // Track if the current command satisfies any requirement
         let requirementSatisfied = false;
 
@@ -384,15 +389,23 @@ export class LevelManager {
                     requirement.command === `git ${gitCommand}` ||
                     requirement.command === command ||
                     requirement.command === gitCommand ||
-                    requirement.alternativeCommands?.some(altCmd => {
+                    (requirement.alternativeCommands && requirement.alternativeCommands.some(altCmd => {
+                        // Handle different formats of alternative commands
                         const altParts = altCmd.split(' ');
-                        if (altParts[0] === 'git' && altParts.length > 1) {
-                            // Handle "git switch" vs "git checkout" etc
-                            return altParts[1] === gitCommand ||
-                                   (altParts.length > 2 && altParts[1] === gitCommand && gitArgs[0] === altParts[2]);
+
+                        // Case 1: "git checkout" matches gitCommand "checkout"
+                        if (altParts[0] === 'git' && altParts.length >= 2) {
+                            return altParts[1] === gitCommand;
                         }
+
+                        // Case 2: "checkout" matches gitCommand "checkout"
+                        if (altParts.length === 1) {
+                            return altParts[0] === gitCommand;
+                        }
+
+                        // Case 3: Full command match "git checkout" === "git checkout"
                         return altCmd === `git ${gitCommand}`;
-                    });
+                    }));
 
                 if (commandMatches) {
                     console.log("Command matches!");
@@ -409,6 +422,15 @@ export class LevelManager {
                                 return gitArgs.includes(reqArg);
                             }
 
+                            // Special case: -c and -b are equivalent for branch creation
+                            // git switch -c === git checkout -b
+                            if (reqArg === "-c" && gitCommand === "checkout") {
+                                return gitArgs.includes("-b");
+                            }
+                            if (reqArg === "-b" && gitCommand === "switch") {
+                                return gitArgs.includes("-c");
+                            }
+
                             return gitArgs.includes(reqArg);
                         });
 
@@ -422,6 +444,25 @@ export class LevelManager {
                     if (requirement.id) {
                         level.completedRequirements.push(requirement.id);
                     }
+
+                    // Check if this completes an objective
+                    if (requirement.objectiveId !== undefined) {
+                        // Get all requirements with the same objectiveId
+                        const objectiveRequirements = level.requirements.filter(
+                            req => req.objectiveId === requirement.objectiveId
+                        );
+
+                        // Check if all requirements for this objective are completed
+                        const allObjectiveRequirementsCompleted = objectiveRequirements.every(
+                            req => !req.id || level.completedRequirements?.includes(req.id)
+                        );
+
+                        // If all requirements for this objective are completed, mark objective as complete
+                        if (allObjectiveRequirementsCompleted && !level.completedObjectives?.includes(requirement.objectiveId)) {
+                            level.completedObjectives?.push(requirement.objectiveId);
+                        }
+                    }
+
                     requirementSatisfied = true;
                     break; // Only one requirement per command
                 }
@@ -467,6 +508,25 @@ export class LevelManager {
                     if (requirement.id) {
                         level.completedRequirements.push(requirement.id);
                     }
+
+                    // Check if this completes an objective
+                    if (requirement.objectiveId !== undefined) {
+                        // Get all requirements with the same objectiveId
+                        const objectiveRequirements = level.requirements.filter(
+                            req => req.objectiveId === requirement.objectiveId
+                        );
+
+                        // Check if all requirements for this objective are completed
+                        const allObjectiveRequirementsCompleted = objectiveRequirements.every(
+                            req => !req.id || level.completedRequirements?.includes(req.id)
+                        );
+
+                        // If all requirements for this objective are completed, mark objective as complete
+                        if (allObjectiveRequirementsCompleted && !level.completedObjectives?.includes(requirement.objectiveId)) {
+                            level.completedObjectives?.push(requirement.objectiveId);
+                        }
+                    }
+
                     requirementSatisfied = true;
                     break; // Only one requirement per command
                 }

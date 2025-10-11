@@ -93,6 +93,7 @@ export type LevelType = {
     requirements: LevelRequirement[];
     requirementLogic?: "any" | "all";
     completedRequirements?: string[];
+    completedObjectives?: number[]; // Track which objectives are completed (by objectiveId)
     story?: StoryContext;
     resetGitRepo?: boolean;
     initialState?: LevelInitialState;
@@ -101,6 +102,7 @@ export type LevelType = {
 // The rest of the types remain mostly the same
 export type LevelRequirement = {
     id?: string;
+    objectiveId?: number; // Group requirements by objective - all requirements with same objectiveId must complete to check off objective
     command: string;
     alternativeCommands?: string[]; // Alternative commands that also fulfill this requirement
     requiresArgs?: string[];
