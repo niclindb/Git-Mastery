@@ -53,7 +53,8 @@ const branchesLevel2 = createLevel({
     requirements: [
         createRequirement({
             command: "git switch",
-            requiresArgs: ["-c"],
+            requiresArgs: ["-c", "-b"],
+            alternativeCommands: ["git checkout"],
             description: "branches.level2.requirement1.description",
             successMessage: "branches.level2.requirement1.success",
         }),
@@ -170,7 +171,8 @@ const branchesLevel5 = createLevel({
     requirements: [
         createRequirement({
             command: "git switch",
-            requiresArgs: ["-c"],
+            requiresArgs: ["-c", "-b"],
+            alternativeCommands: ["git checkout"],
             description: "branches.level5.requirement1.description",
             successMessage: "branches.level5.requirement1.success",
         }),

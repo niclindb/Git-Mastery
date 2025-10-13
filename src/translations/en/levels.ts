@@ -197,19 +197,19 @@ const levels = {
         "git checkout was THE command for branch operations for years. Many developers and tools still use it. Knowing both makes you more versatile across different projects and teams.",
     "branches.level4.story.taskIntroduction": "Switch to another branch using the classic git checkout command.",
 
-    "branches.level5.name": "Create Branch with Checkout",
-    "branches.level5.description": "Create and switch to a new branch using git checkout -b",
-    "branches.level5.objective1": "Create a new branch using git checkout -b",
-    "branches.level5.hint1": "Use the command `git checkout -b <new-branch-name>`",
-    "branches.level5.hint2": "The -b flag tells checkout to create a new branch",
-    "branches.level5.requirement1.description": "Create and switch to a new branch using git checkout -b",
+    "branches.level5.name": "Create Branch with Switch",
+    "branches.level5.description": "Create and switch to a new branch using git switch -c",
+    "branches.level5.objective1": "Create a new branch",
+    "branches.level5.hint1": "Use the command `git switch -c <new-branch-name>`",
+    "branches.level5.hint2": "The -c flag tells switch to create a new branch",
+    "branches.level5.requirement1.description": "Create and switch to a new branch using git switch -c",
     "branches.level5.requirement1.success": "Perfect! You now master both methods of creating branches.",
     "branches.level5.story.title": "Quick Branch Creation",
     "branches.level5.story.narrative":
-        '"One last trick with checkout," Sarah says. "You can use \'git checkout -b\' to create a new branch and switch to it at the same time - just like switch -c."\n\nShe explains: "In many older Git tutorials and projects, you\'ll see this pattern. It\'s the same concept as switch -c, just with the older syntax."',
+        '"Another handy trick," Sarah says. "You can use \'git switch -c\' to create a new branch and switch to it at the same time."\n\nShe explains: "This is the modern way in Git. The -c flag stands for \'create\' and does exactly the same as the older \'git checkout -b\', but it\'s clearer and more intuitive."',
     "branches.level5.story.realWorldContext":
-        "The checkout -b pattern is very widespread in the Git community. Many developers have built muscle memory for it and continue using it even after switch was introduced.",
-    "branches.level5.story.taskIntroduction": "Create a new branch using git checkout -b and automatically switch to it.",
+        "The switch -c pattern is the modern, recommended method for creating and switching branches. It was introduced in Git 2.23 to separate branch operations from other checkout functions and make them more intuitive.",
+    "branches.level5.story.taskIntroduction": "Create a new branch using git switch -c and automatically switch to it.",
 
     // Level Content - Merge Stage
     "merge.name": "Merging Branches",
