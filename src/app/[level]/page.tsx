@@ -294,16 +294,18 @@ export default function LevelPage() {
     const isDoubleXpActive = progressManager.isDoubleXpActive();
     const doubleXpHoursLeft = progressManager.getDoubleXpRemainingHours();
 
-    // Reset terminal once when the component mounts
+    // Reset terminal only after URL params (or localStorage) have been processed
     useEffect(() => {
-        resetTerminalForLevel();
+        if (urlParamsProcessed) {
+            resetTerminalForLevel();
+        }
 
         return () => {
             setUrlParamsProcessed(false);
             levelParamProcessedRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [urlParamsProcessed]);
 
     // Update editable files when terminal output changes (indicator of file system changes)
     const updateEditableFiles = useCallback(() => {
@@ -585,10 +587,14 @@ export default function LevelPage() {
                         </Card>
 
                         {/* Terminal - Second on mobile, optimized height */}
-                        <Terminal
-                            className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]"
-                            onResetClick={() => setShowResetModal(true)}
-                        />
+                        {urlParamsProcessed ? (
+                            <Terminal
+                                className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]"
+                                onResetClick={() => setShowResetModal(true)}
+                            />
+                        ) : (
+                            <TerminalSkeleton className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]" />
+                        )}
                     </div>
 
                     <FileEditor

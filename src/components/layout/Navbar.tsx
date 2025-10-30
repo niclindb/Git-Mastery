@@ -191,7 +191,7 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                 <div className="ml-auto hidden items-center space-x-4 md:flex">
                     {/* GitHub star button - elegant with tooltip */}
                     <a
-                        href="https://github.com/MikaStiebitz/Git-Gud"
+                        href="https://github.com/MikaStiebitz/Git-Mastery"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 hover:bg-purple-800/50"
@@ -287,7 +287,7 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
                 <div className="ml-auto flex items-center space-x-2 md:hidden">
                     {/* GitHub star for mobile */}
                     <a
-                        href="https://github.com/MikaStiebitz/Git-Gud"
+                        href="https://github.com/MikaStiebitz/Git-Mastery"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 hover:bg-purple-800/50"
@@ -329,7 +329,7 @@ export function Navbar({ showLevelInfo = false }: NavbarProps) {
 
                         {/* GitHub star for mobile menu (with text) */}
                         <a
-                            href="https://github.com/MikaStiebitz/Git-Gud"
+                            href="https://github.com/MikaStiebitz/Git-Mastery"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex w-full items-center rounded-md border border-purple-800/40 bg-purple-900/20 px-3 py-2 text-purple-300">
