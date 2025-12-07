@@ -70,7 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "WebApplication",
-                            name: "GitGud - Learn Git Through Play",
+                            name: "GitMastery - Learn Git Through Play",
                             description: "An interactive Git learning platform with hands-on practice",
                             url: "https://www.gitmastery.me",
                             applicationCategory: "EducationalApplication",
@@ -78,7 +78,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                             inLanguage: "en",
                             publisher: {
                                 "@type": "Organization",
-                                name: "GitGud",
+                                name: "GitMastery",
                                 url: "https://www.gitmastery.me",
                             },
                             offers: {

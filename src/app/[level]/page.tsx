@@ -576,10 +576,14 @@ export default function LevelPage() {
                         </Card>
 
                         {/* Terminal - Second on mobile, optimized height */}
-                        <Terminal
-                            className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]"
-                            onResetClick={() => setShowResetModal(true)}
-                        />
+                        {urlParamsProcessed ? (
+                            <Terminal
+                                className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]"
+                                onResetClick={() => setShowResetModal(true)}
+                            />
+                        ) : (
+                            <TerminalSkeleton className="order-2 h-[450px] rounded-md sm:h-[500px] lg:order-1 lg:h-[580px]" />
+                        )}
                     </div>
 
                     <FileEditor
