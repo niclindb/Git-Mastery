@@ -69,12 +69,17 @@ const masteryLevel1 = createLevel({
                 {
                     file: "/src/utils/shared.js",
                     content: `// Shared utilities
+<<<<<<< feature/auth
 function formatDate(date) {
   // Auth team needs ISO format
   return date.toISOString();
+}
+=======
+function formatDate(date) {
   // Payments team needs locale format
   return date.toLocaleDateString();
 }
+>>>>>>> feature/payments
 
 <<<<<<< feature/ui
 // UI utility functions
